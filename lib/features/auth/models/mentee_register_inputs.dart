@@ -18,6 +18,7 @@ class MenteeRegisterInputs {
   final bool? coreFoundation;
   final String? certificateNumber;
   final String? program;
+  final String? programId;
 
   MenteeRegisterInputs({
     this.firstName,
@@ -39,6 +40,7 @@ class MenteeRegisterInputs {
     this.coreFoundation,
     this.certificateNumber,
     this.program,
+    this.programId,
   });
 
   MenteeRegisterInputs copyWith({
@@ -61,6 +63,7 @@ class MenteeRegisterInputs {
     bool? coreFoundation,
     String? certificateNumber,
     String? program,
+    String? programId,
   }) {
     return MenteeRegisterInputs(
       firstName: firstName ?? this.firstName,
@@ -82,6 +85,7 @@ class MenteeRegisterInputs {
       coreFoundation: coreFoundation ?? this.coreFoundation,
       certificateNumber: certificateNumber ?? this.certificateNumber,
       program: program ?? this.program,
+      programId: programId ?? this.programId,
     );
   }
 
@@ -106,6 +110,7 @@ class MenteeRegisterInputs {
       coreFoundation: map['coreFoundation'],
       certificateNumber: map['certificateNumber'],
       program: map['program'],
+      programId: map['programId'],
     );
   }
 
@@ -124,7 +129,7 @@ class MenteeRegisterInputs {
       'state': stateId,
       'coreFoundation': coreFoundation,
       'certificateNumber': certificateNumber??'',
-      'program': program??'',
+      'program': programId??'',
     };
   }
 }

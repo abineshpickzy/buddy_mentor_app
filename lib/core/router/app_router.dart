@@ -11,6 +11,7 @@ import 'package:buddymentor/features/mentee/dashboard/screens/mentee_wisdomtree/
 import 'package:buddymentor/features/mentor/dashboard/views/mentor_dashboard_screen.dart';
 import 'package:buddymentor/features/industry/dashboard/views/industry_dashboard_screen.dart';
 import 'package:buddymentor/features/institution/dashboard/views/institution_dashboard_screen.dart';
+import 'package:buddymentor/shared/screens/contact_us.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/screens/screens.dart';
 
@@ -122,5 +123,7 @@ final GoRouter appRouter = GoRouter(
       path: '/institutiondashboard',
       builder: (_, __) => const InstitutionDashboardScreen(),
     ),
+
+    GoRoute( path: '/contactus', builder: (_, __) => const ContactUsScreen() )
   ],
 );

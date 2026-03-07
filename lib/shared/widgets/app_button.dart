@@ -38,7 +38,7 @@ class _AppButtonState extends State<AppButton> {
                 ? null
                 : LinearGradient(
                     colors: _isPressed 
-                        ? [AppColors.primary.withOpacity(0.8), AppColors.primary.withOpacity(0.8)]
+                        ? [AppColors.primary.withValues(alpha: 0.8), AppColors.primary.withValues(alpha: 0.8)]
                         : [AppColors.primary, AppColors.primary],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,

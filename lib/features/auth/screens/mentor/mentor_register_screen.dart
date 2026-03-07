@@ -47,6 +47,7 @@ class _MentorRegisterScreenState extends ConsumerState<MentorRegisterScreen> {
   int? disciplineId;
   String? expYears;
   String? program;
+  String? programId;
   bool agreeTerms = false;
 
   @override
@@ -90,6 +91,7 @@ class _MentorRegisterScreenState extends ConsumerState<MentorRegisterScreen> {
         expYears: expYears,
         experience: experienceController.text,
         program: program,
+        programId: programId,
       );
 
       ref.read(registerInputProvider.notifier).setMentorRegisterInputs(inputs);
@@ -98,7 +100,7 @@ class _MentorRegisterScreenState extends ConsumerState<MentorRegisterScreen> {
       final data = {
         "email": inputs.email,
         "mobile": {
-          "dialing_code": int.parse(inputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+          "dialing_code": int.parse((inputs.mobile?.dialing_code ?? '91').replaceAll('+', '')),
           "number": int.parse(inputs.mobile?.number ?? '0')
         }
       };
@@ -483,19 +485,41 @@ class _MentorRegisterScreenState extends ConsumerState<MentorRegisterScreen> {
               const SizedBox(height: 16),
 
               /// Program
-              AppDropdownField(
-                label: "Program",
-                hint: "Select program",
-                value: program,
-                items: const [
-                  "EPC CORE FOUNDATION",
-                  "CIVIL CORE FOUNDATION",
-                  "MECH CORE FOUNDATION",
-                  "ECE CORE FOUNDATION",
-                  "CSE CORE FOUNDATION"
-                ],
-                onChanged: (val) => setState(() => program = val),
-                validator: Validators.dropdown,
+              Consumer(
+                builder: (context, ref, child) {
+                  final dataAsync = ref.watch(mentorRegisterControllerProvider);
+                  
+                  return dataAsync.when(
+                    data: (data) => AppDropdownField(
+                      label: "Program",
+                      hint: "Select program",
+                      value: program,
+                      items: data.programs.map((p) => p.name).toList(),
+                      onChanged: (val) {
+                        final selectedProgram = data.programs.firstWhere((p) => p.name == val);
+                        setState(() {
+                          program = val;
+                          programId = selectedProgram.id;
+                        });
+                      },
+                      validator: Validators.dropdown,
+                    ),
+                    loading: () => AppDropdownField(
+                      label: "Program",
+                      hint: "Loading...",
+                      value: null,
+                      items: const [],
+                      onChanged: (_) {},
+                    ),
+                    error: (error, stack) => AppDropdownField(
+                      label: "Program",
+                      hint: "Error loading programs",
+                      value: null,
+                      items: const [],
+                      onChanged: (_) {},
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 16),

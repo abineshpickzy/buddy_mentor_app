@@ -16,7 +16,7 @@ class ForgotPasswordController extends Notifier<AsyncValue<void>> {
   Future<String?> requestOtp(String email) async {
     state = const AsyncValue.loading();
     try {
-      final response = await AuthService.requestOtp({'email': email});
+      await AuthService.requestOtp({'email': email});
       state = const AsyncValue.data(null);
       return null; // Success
     } catch (error) {
@@ -40,7 +40,7 @@ class ForgotPasswordController extends Notifier<AsyncValue<void>> {
   Future<String?> verifyResetOtp(String email, String otp) async {
     state = const AsyncValue.loading();
     try {
-      final response = await AuthService.verifyResetOtp({
+      await AuthService.verifyResetOtp({
         'email': email,
         'otp': int.parse(otp),
       });
@@ -68,7 +68,7 @@ class ForgotPasswordController extends Notifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final hashedPassword = _md5Hash(password);
-      final response = await AuthService.resetPassword({
+      await AuthService.resetPassword({
         'email': email,
         'password': hashedPassword,
       });

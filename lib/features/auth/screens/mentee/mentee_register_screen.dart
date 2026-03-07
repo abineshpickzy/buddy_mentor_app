@@ -44,6 +44,7 @@ class _MenteeRegisterScreenState extends ConsumerState<MenteeRegisterScreen> {
   int? countryId;
   int? stateId;
   String? program;
+  String? programId;
   String? discipline;
   int? disciplineId;
   String? qualificationType;
@@ -89,6 +90,7 @@ class _MenteeRegisterScreenState extends ConsumerState<MenteeRegisterScreen> {
         coreFoundation: coreFoundation,
         certificateNumber: certificateController.text,
         program: program,
+        programId: programId,
       );
 
       ref.read(registerInputProvider.notifier).setMenteeRegisterInputs(inputs);
@@ -97,7 +99,7 @@ class _MenteeRegisterScreenState extends ConsumerState<MenteeRegisterScreen> {
       final data = {
         "email": inputs.email,
         "mobile": {
-          "dialing_code": int.parse(inputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+          "dialing_code": int.parse((inputs.mobile?.dialing_code ?? '+91').replaceAll('+', '')),
           "number": int.parse(inputs.mobile?.number ?? '0')
         }
       };
@@ -105,6 +107,7 @@ class _MenteeRegisterScreenState extends ConsumerState<MenteeRegisterScreen> {
       final errorMessage = await ref.read(RegisterControllerProvider.notifier).verifySignup(data);
       
       if (errorMessage != null) {
+        // ignore: use_build_context_synchronously
         AppToast.show(context, message: errorMessage, type: ToastType.error);
         return;
       
@@ -592,19 +595,41 @@ class _MenteeRegisterScreenState extends ConsumerState<MenteeRegisterScreen> {
 
               /// Choose Program
               if (coreFoundation) ...[
-                AppDropdownField(
-                  label: "Choose program",
-                  hint: "Search mentoring program",
-                  value: program,
-                  items: const [
-                    "EPC CORE FOUNDATION",
-                    "CIVIL CORE FOUNDATION",
-                    "MECH CORE FOUNDATION",
-                    "ECE CORE FOUNDATION",
-                    "CSE CORE FOUNDATION"
-                  ],
-                  onChanged: (val) => setState(() => program = val),
-                  validator: coreFoundation ? Validators.dropdown : null,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final dataAsync = ref.watch(menteeRegisterControllerProvider);
+                    
+                    return dataAsync.when(
+                      data: (data) => AppDropdownField(
+                        label: "Choose program",
+                        hint: "Search mentoring program",
+                        value: program,
+                        items: data.programs.map((p) => p.name).toList(),
+                        onChanged: (val) {
+                          final selectedProgram = data.programs.firstWhere((p) => p.name == val);
+                          setState(() {
+                            program = val;
+                            programId = selectedProgram.id;
+                          });
+                        },
+                        validator: coreFoundation ? Validators.dropdown : null,
+                      ),
+                      loading: () => AppDropdownField(
+                        label: "Choose program",
+                        hint: "Loading...",
+                        value: null,
+                        items: const [],
+                        onChanged: (_) {},
+                      ),
+                      error: (error, stack) => AppDropdownField(
+                        label: "Choose program",
+                        hint: "Error loading programs",
+                        value: null,
+                        items: const [],
+                        onChanged: (_) {},
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
               ],

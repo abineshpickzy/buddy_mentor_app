@@ -3,14 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/discipline_model.dart';
 import '../models/country_model.dart';
+import '../models/program_model.dart';
 
 class MenteeRegisterData {
   final List<Discipline> disciplines;
   final List<Country> countries;
+  final List<Program> programs;
 
   MenteeRegisterData({
     required this.disciplines,
     required this.countries,
+    required this.programs,
   });
 }
 
@@ -19,7 +22,8 @@ class MenteeRegisterController extends AsyncNotifier<MenteeRegisterData> {
   Future<MenteeRegisterData> build() async {
     final disciplines = await fetchDisciplines();
     final countries = await fetchCountries();
-    return MenteeRegisterData(disciplines: disciplines, countries: countries);
+    final programs = await fetchPrograms();
+    return MenteeRegisterData(disciplines: disciplines, countries: countries, programs: programs);
   }
 
   Future<List<Discipline>> fetchDisciplines() async {
@@ -41,6 +45,19 @@ class MenteeRegisterController extends AsyncNotifier<MenteeRegisterData> {
       if (response.statusCode == 200 && response.data['success'] == true) {
         final countryResponse = CountryResponse.fromJson(response.data);
         return countryResponse.countries;
+      }
+      return [];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<List<Program>> fetchPrograms() async {
+    try {
+      final response = await AuthService.getProgramList();
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> programData = response.data['data'];
+        return programData.map((json) => Program.fromJson(json)).toList();
       }
       return [];
     } catch (error) {

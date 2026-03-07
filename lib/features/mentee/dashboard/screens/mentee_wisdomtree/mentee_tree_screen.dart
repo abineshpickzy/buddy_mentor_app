@@ -177,7 +177,7 @@ class _TreeNodeState extends State<TreeNode>
       return Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Icon(
@@ -192,7 +192,7 @@ class _TreeNodeState extends State<TreeNode>
       return Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(Icons.folder_outlined, size: 18, color: AppColors.primary),
@@ -202,7 +202,7 @@ class _TreeNodeState extends State<TreeNode>
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Icon(Icons.article_outlined, size: 18, color: Colors.green),

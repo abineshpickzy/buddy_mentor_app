@@ -15,4 +15,5 @@ class ApiEndpoints {
 
   static const disciplineList = "discipline/ls";
   static const countryList = "country/ls";
+  static const programList = "prgm/ls";
 }

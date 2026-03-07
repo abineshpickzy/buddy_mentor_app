@@ -5,14 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../models/week_item.dart';
 
-
 class MenteeHomeScreen extends ConsumerWidget {
   const MenteeHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<WeekItem> weeks = sampleWeeks;
-    final authState = ref.watch(authControllerProvider); // Use watch to listen to changes
+    final authState = ref.watch(
+      authControllerProvider,
+    ); // Use watch to listen to changes
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -26,9 +27,14 @@ class MenteeHomeScreen extends ConsumerWidget {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: const Text(
+        title:  Text(
           "Engineering Program",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.textDark,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+
+              ),
         ),
         centerTitle: true,
         actions: [
@@ -36,7 +42,7 @@ class MenteeHomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
               onTap: () {
-                 context.push('/menteeprofile');
+                context.push('/menteeprofile');
               },
               child: const CircleAvatar(
                 radius: 16,
@@ -49,30 +55,41 @@ class MenteeHomeScreen extends ConsumerWidget {
       ),
 
       drawer: Drawer(
-
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(0),
+            bottomRight: Radius.circular(0),
+          ),
+        ),
         child: Column(
           children: [
             const SizedBox(height: 60),
             const CircleAvatar(
               radius: 40,
-              backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=3"),
+              backgroundImage: AssetImage('assets/images/logo.png'),
             ),
             const SizedBox(height: 10),
-             Text(
-              "${authState.fullUserData?["first_name"] ?? ""} ${authState.fullUserData?["last_name"] ?? "Alex Thompson"}".trim(),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18
-              ),
-            ),             
-              
+            Text(
+              "${authState.fullUserData?["first_name"] ?? ""} ${authState.fullUserData?["last_name"] ?? "Alex Thompson"}"
+                  .trim(),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+
             Text(
               authState.fullUserData?["email"]?["id"] ?? "alexthompson@bu.edu",
-              
+
               style: TextStyle(color: Colors.grey),
             ),
             const Divider(height: 40),
             _drawerItem(Icons.home, "Home", true, null),
-            _drawerItem(Icons.mail, "Contact Us", false, null),
+            _drawerItem(
+              Icons.mail,
+              "Contact Us",
+              false,
+              () => context.push('/contactus'),
+            ),
             const Spacer(),
+            const Divider(height: 1),
             _drawerItem(Icons.logout, "Sign Out", false, () async {
               await ref.read(authControllerProvider.notifier).logout();
               if (context.mounted) {
@@ -241,7 +258,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                               style: const TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w500,
-                                fontSize: 12
+                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -258,7 +275,12 @@ class MenteeHomeScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _drawerItem(IconData icon, String title, bool selected, VoidCallback? onTap) {
+  static Widget _drawerItem(
+    IconData icon,
+    String title,
+    bool selected,
+    VoidCallback? onTap,
+  ) {
     return ListTile(
       leading: Icon(icon, color: selected ? AppColors.primary : Colors.grey),
       title: Text(

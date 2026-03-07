@@ -1,20 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../../auth/controllers/auth_controller.dart';
 
 
-class MenteeProfileEditScreen extends StatefulWidget {
+class MenteeProfileEditScreen extends ConsumerStatefulWidget {
   const MenteeProfileEditScreen({super.key});
 
   @override
-  State<MenteeProfileEditScreen> createState() => _MenteeProfileEditScreenState();
+  ConsumerState<MenteeProfileEditScreen> createState() => _MenteeProfileEditScreenState();
 }
 
-class _MenteeProfileEditScreenState extends State<MenteeProfileEditScreen> {
+class _MenteeProfileEditScreenState extends ConsumerState<MenteeProfileEditScreen> {
   // Controllers for handling input
-  final TextEditingController _nameController = TextEditingController(text: "Arjun Mehta");
-  final TextEditingController _emailController = TextEditingController(text: "arjun.mehta@university.edu");
-  final TextEditingController _phoneController = TextEditingController(text: "+91 98765 43210");
-  final TextEditingController _disciplineController = TextEditingController(text: "Computer Engineering");
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _disciplineController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _prefillData();
+    });
+  }
+
+  void _prefillData() {
+    final authState = ref.read(authControllerProvider);
+    final userData = authState.fullUserData;
+    
+    if (userData != null) {
+      _nameController.text = "${userData["first_name"] ?? ""} ${userData["last_name"] ?? ""}".trim();
+      _emailController.text = userData["email"]?["id"]?.toString() ?? "";
+      _phoneController.text = "+${userData["mobile"]?["dialing_code"]?.toString() ?? "91"} ${userData["mobile"]?["number"]?.toString() ?? ""}";
+      _disciplineController.text = userData["discipline"]?.toString() ?? "";
+    }
+  }
 
   @override
   void dispose() {
@@ -64,8 +86,8 @@ class _MenteeProfileEditScreenState extends State<MenteeProfileEditScreen> {
               child: Stack(
                 children: [
                   const CircleAvatar(
-                    radius: 60,
-                    backgroundImage: AssetImage('assets/images/profile_pic.png'),
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/images/logo.png'),
                   ),
                   Positioned(
                     bottom: 0,
@@ -157,7 +179,7 @@ class _MenteeProfileEditScreenState extends State<MenteeProfileEditScreen> {
               contentPadding: const EdgeInsets.symmetric(vertical: 16),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),

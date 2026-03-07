@@ -14,6 +14,7 @@ class MentorRegisterInputs {
   final String? expYears;
   final String? experience;
   final String? program;
+  final String? programId;
 
   MentorRegisterInputs({
     this.firstName,
@@ -31,6 +32,7 @@ class MentorRegisterInputs {
     this.expYears,
     this.experience,
     this.program,
+    this.programId,
   });
 
   MentorRegisterInputs copyWith({
@@ -49,6 +51,7 @@ class MentorRegisterInputs {
     String? expYears,
     String? experience,
     String? program,
+    String? programId,
   }) {
     return MentorRegisterInputs(
       firstName: firstName ?? this.firstName,
@@ -66,6 +69,7 @@ class MentorRegisterInputs {
       expYears: expYears ?? this.expYears,
       experience: experience ?? this.experience,
       program: program ?? this.program,
+      programId: programId ?? this.programId,
     );
   }
 
@@ -86,6 +90,7 @@ class MentorRegisterInputs {
       expYears: map['expYears'],
       experience: map['experience'],
       program: map['program'],
+      programId: map['programId'],
     );
   }
 
@@ -102,7 +107,7 @@ class MentorRegisterInputs {
       'state': stateId,
       'expYears': expYears,
       'experience': experience,
-      'program': program,
+      'program': programId,
     };
   }
 }

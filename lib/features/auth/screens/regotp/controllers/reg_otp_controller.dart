@@ -18,7 +18,7 @@ class RegOtpController extends AsyncNotifier<void> {
         final data = {
           "email": menteeInputs.email,
           "mobile": {
-            "dialing_code": int.parse(menteeInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse(menteeInputs.mobile?.dialing_code.replaceAll('+', '') ?? '91'),
             "number": int.parse(menteeInputs.mobile?.number ?? '0')
           }
         };
@@ -32,7 +32,7 @@ class RegOtpController extends AsyncNotifier<void> {
         final data = {
           "email": mentorInputs.email,
           "mobile": {
-            "dialing_code": int.parse(mentorInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse(mentorInputs.mobile?.dialing_code.replaceAll('+', '') ?? '91'),
             "number": int.parse(mentorInputs.mobile?.number ?? '0')
           }
         };
@@ -46,7 +46,7 @@ class RegOtpController extends AsyncNotifier<void> {
         final data = {
           "email": industryInputs.email,
           "mobile": {
-            "dialing_code": int.parse(industryInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse((industryInputs.mobile?.dialing_code ?? '91').replaceAll('+', '')),
             "number": int.parse(industryInputs.mobile?.number ?? '0')
           }
         };
@@ -60,7 +60,7 @@ class RegOtpController extends AsyncNotifier<void> {
         final data = {
           "email": institutionInputs.email,
           "mobile": {
-            "dialing_code": int.parse(institutionInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse((institutionInputs.mobile?.dialing_code ?? '91').replaceAll('+', '')),
             "number": int.parse(institutionInputs.mobile?.number ?? '0')
           }
         };
@@ -89,7 +89,7 @@ class RegOtpController extends AsyncNotifier<void> {
             "id": menteeInputs.email
           },
           "mobile": {
-            "dialing_code": int.parse(menteeInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse(menteeInputs.mobile?.dialing_code.replaceAll('+', '') ?? '91'),
             "number": int.parse(menteeInputs.mobile?.number ?? '0')
           },
           "first_name": menteeInputs.firstName,
@@ -105,7 +105,7 @@ class RegOtpController extends AsyncNotifier<void> {
           "stream": menteeInputs.qualificationTypeId,
           "has_certificate": menteeInputs.coreFoundation,
           if (menteeInputs.coreFoundation == true) "certificate_number": menteeInputs.certificateNumber,
-          if (menteeInputs.coreFoundation == true) "program_id": menteeInputs.program,
+          if (menteeInputs.coreFoundation == true) "program_id": menteeInputs.programId,
         };
         
         final errorMessage = await ref.read(RegisterControllerProvider.notifier).signup(data);
@@ -119,7 +119,7 @@ class RegOtpController extends AsyncNotifier<void> {
             "id": mentorInputs.email
           },
           "mobile": {
-            "dialing_code": int.parse(mentorInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse(mentorInputs.mobile?.dialing_code.replaceAll('+', '') ?? '91'),
             "number": int.parse(mentorInputs.mobile?.number ?? '0')
           },
           "first_name": mentorInputs.firstName,
@@ -133,7 +133,7 @@ class RegOtpController extends AsyncNotifier<void> {
           "dob": mentorInputs.dateOfBirth,
           "exp_years": int.tryParse(mentorInputs.expYears ?? '0') ?? 0,
           "experience": mentorInputs.experience,
-          // "program_id": mentorInputs.program,
+          // "program_id": mentorInputs.programId,
         };
         
         final errorMessage = await ref.read(RegisterControllerProvider.notifier).signup(data);
@@ -147,7 +147,7 @@ class RegOtpController extends AsyncNotifier<void> {
             "id": industryInputs.email
           },
           "mobile": {
-            "dialing_code": int.parse(industryInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse((industryInputs.mobile?.dialing_code ?? '91').replaceAll('+', '')),
             "number": int.parse(industryInputs.mobile?.number ?? '0')
           },
           "first_name": industryInputs.firstName,
@@ -170,7 +170,7 @@ class RegOtpController extends AsyncNotifier<void> {
             "id": institutionInputs.email
           },
           "mobile": {
-            "dialing_code": int.parse(institutionInputs.mobile?.dialing_code?.replaceAll('+', '') ?? '91'),
+            "dialing_code": int.parse((institutionInputs.mobile?.dialing_code ?? '91').replaceAll('+', '')),
             "number": int.parse(institutionInputs.mobile?.number ?? '0')
           },
           "first_name": institutionInputs.firstName,

@@ -111,6 +111,17 @@ class AuthService {
       }
     }
 
+    static Future<Response> getProgramList() async {
+      try {
+        final response = await DioClient.dio.get(
+          ApiEndpoints.programList,
+        );
+        return response;
+      } catch (e) {
+        rethrow;
+      }
+    }
+
     static Future<Response> getUserById(String userId) async {
       try {
         final response = await DioClient.dio.get(
