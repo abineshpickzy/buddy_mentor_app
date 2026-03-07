@@ -1,7 +1,7 @@
-import '../models/mentee_register_inputs.dart';
-import '../models/mentor_register_inputs.dart';
-import '../models/industry_register_inputs.dart';
-import '../models/institution_register_inputs.dart';
+import 'package:buddymentor/features/auth/data/models/mentee_register_inputs.dart';
+import 'package:buddymentor/features/auth/data/models/mentor_register_inputs.dart';
+import 'package:buddymentor/features/auth/data/models/industry_register_inputs.dart';
+import 'package:buddymentor/features/auth/data/models/institution_register_inputs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RegisterState{

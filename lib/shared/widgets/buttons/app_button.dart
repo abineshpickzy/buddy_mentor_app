@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_sizes.dart';
-import '../../core/constants/app_colors.dart';
+import 'package:buddymentor/core/constants/app_sizes.dart';
+import 'package:buddymentor/core/constants/app_colors.dart';
 
 class AppButton extends StatefulWidget {
   final String text;

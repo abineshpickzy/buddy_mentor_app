@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_sizes.dart';
-import '../../../../../shared/widgets/app_button.dart';
-import '../../../../../shared/widgets/custom_appbar.dart';
+import 'package:buddymentor/shared/widgets/buttons/app_button.dart';
+import 'package:buddymentor/shared/widgets/app_bar/custom_appbar.dart';
 import '../../providers/role_provider.dart';
 
 class RoleSelectionScreen extends ConsumerStatefulWidget {

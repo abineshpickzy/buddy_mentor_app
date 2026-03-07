@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/auth_models.dart';
-import '../services/storage_service.dart';
-import '../services/auth_service.dart';
+import 'package:buddymentor/features/auth/data/models/auth_models.dart';
+import 'package:buddymentor/features/auth/data/services/storage_service.dart';
+import 'package:buddymentor/features/auth/data/services/auth_service.dart';
 
 class AuthController extends Notifier<AuthState> {
   @override

@@ -1,4 +1,4 @@
-import 'package:buddymentor/shared/widgets/custom_appbar.dart';
+import 'package:buddymentor/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/constants/app_colors.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
-import '../services/auth_service.dart';
+import 'package:buddymentor/features/auth/data/services/auth_service.dart';
 
 class ForgotPasswordController extends Notifier<AsyncValue<void>> {
   @override

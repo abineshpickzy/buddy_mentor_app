@@ -1,4 +1,3 @@
-
 class AuthState {
 
  final String? token;

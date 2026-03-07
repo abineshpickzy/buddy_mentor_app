@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../controllers/forgot_password_controller.dart';
 import '../../../../../../shared/utils/app_toast.dart';
 
-import '../../../../../../shared/widgets/app_button.dart';
-import '../../../../../../shared/widgets/custom_textfield.dart';
+import 'package:buddymentor/shared/widgets/buttons/app_button.dart';
+import 'package:buddymentor/shared/widgets/inputs/custom_textfield.dart';
 import '../../../../../../shared/utils/validators.dart';
 import '../../../../../../core/constants/app_sizes.dart';
 import '../../../../../../core/constants/app_colors.dart';

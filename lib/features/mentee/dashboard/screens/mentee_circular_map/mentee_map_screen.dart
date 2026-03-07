@@ -1,4 +1,4 @@
-import 'package:buddymentor/shared/widgets/custom_appbar.dart';
+import 'package:buddymentor/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'models/learning_item.dart';
 import 'widgets/half_moon_learning_map.dart';

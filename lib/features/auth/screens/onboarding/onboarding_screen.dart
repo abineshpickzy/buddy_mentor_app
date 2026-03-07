@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../../shared/widgets/app_button.dart';
+import 'package:buddymentor/shared/widgets/buttons/app_button.dart';
 import '../../../../../../shared/utils/app_preferences.dart';
 import '../../../../../../core/constants/app_sizes.dart';
 

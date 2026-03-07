@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_sizes.dart';
-import '../../../../../../shared/widgets/app_button.dart';
-import '../../../../../../shared/widgets/custom_appbar.dart';
-import '../../../../../../shared/widgets/custom_textfield.dart';
+import 'package:buddymentor/shared/widgets/buttons/app_button.dart';
+import 'package:buddymentor/shared/widgets/app_bar/custom_appbar.dart';
+import 'package:buddymentor/shared/widgets/inputs/custom_textfield.dart';
 import '../../../../../../shared/utils/validators.dart';
-import '../../models/industry_register_inputs.dart';
+import 'package:buddymentor/features/auth/data/models/industry_register_inputs.dart';
 
 class IndustryRegisterScreen extends ConsumerStatefulWidget {
   const IndustryRegisterScreen({super.key});

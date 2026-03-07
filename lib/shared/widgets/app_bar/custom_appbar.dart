@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_colors.dart';
+import 'package:buddymentor/core/constants/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -20,7 +20,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
       toolbarHeight: 120,
-
       leading: Padding(
         padding: const EdgeInsets.only(top: 8, left: 4),
         child: Align(
@@ -35,8 +34,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-
-      /// 🔥 USE flexibleSpace INSTEAD OF title
       flexibleSpace: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(top: 20),

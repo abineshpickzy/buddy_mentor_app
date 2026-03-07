@@ -1,4 +1,4 @@
-import 'package:buddymentor/features/auth/services/auth_service.dart';
+import 'package:buddymentor/features/auth/data/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/discipline_model.dart';

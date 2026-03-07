@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import '../../controllers/forgot_password_controller.dart';
 import '../../../../../../shared/utils/app_toast.dart';
-import '../../../../../../shared/widgets/app_button.dart';
+import 'package:buddymentor/shared/widgets/buttons/app_button.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_sizes.dart';
 

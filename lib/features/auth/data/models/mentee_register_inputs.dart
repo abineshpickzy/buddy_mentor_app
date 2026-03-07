@@ -128,12 +128,11 @@ class MenteeRegisterInputs {
       'country': countryId,
       'state': stateId,
       'coreFoundation': coreFoundation,
-      'certificateNumber': certificateNumber??'',
-      'program': programId??'',
+      'certificateNumber': certificateNumber ?? '',
+      'program': programId ?? '',
     };
   }
 }
-
 
 class Mobile {
   final String dialing_code;

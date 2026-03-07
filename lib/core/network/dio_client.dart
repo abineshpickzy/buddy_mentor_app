@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import '../../features/auth/services/storage_service.dart';
-import '../../features/auth/models/auth_models.dart';
+import 'package:buddymentor/features/auth/data/services/storage_service.dart';
+import 'package:buddymentor/features/auth/data/models/auth_models.dart';
 
 class DioClient {
   static late Dio _dio;

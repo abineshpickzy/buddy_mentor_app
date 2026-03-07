@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_sizes.dart';
-import '../../core/constants/app_colors.dart';
+import 'package:buddymentor/core/constants/app_sizes.dart';
+import 'package:buddymentor/core/constants/app_colors.dart';
 
 class AppOutlineButton extends StatelessWidget {
   final String text;
@@ -22,7 +22,6 @@ class AppOutlineButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: AppColors.primary, width:1),
           foregroundColor: AppColors.primary,
-        
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

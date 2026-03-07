@@ -5,22 +5,18 @@ class Mobile {
   Mobile({this.dialing_code, this.number});
 }
 
-class IndustryRegisterInputs {
+class InstitutionRegisterInputs {
   final String firstName;
   final String lastName;
   final String email;
   final Mobile? mobile;
-  final String companyName;
-  final String websiteLink;
   final String message;
 
-  IndustryRegisterInputs({
+  InstitutionRegisterInputs({
     required this.firstName,
     required this.lastName,
     required this.email,
     this.mobile,
-    required this.companyName,
-    required this.websiteLink,
     required this.message,
   });
 }

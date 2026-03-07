@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
+import 'package:buddymentor/core/constants/app_colors.dart';
 
 class AppDropdownField extends StatelessWidget {
   final String label;

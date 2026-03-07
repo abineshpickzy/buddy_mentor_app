@@ -1,5 +1,4 @@
- 
- import 'package:buddymentor/features/auth/models/auth_state.dart';
+import 'package:buddymentor/features/auth/data/models/auth_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthNotifier extends AsyncNotifier<AuthState> {
