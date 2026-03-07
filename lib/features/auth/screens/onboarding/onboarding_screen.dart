@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/utils/app_preferences.dart';
-import '../../../../core/constants/app_sizes.dart';
+import '../../../../../../shared/widgets/app_button.dart';
+import '../../../../../../shared/utils/app_preferences.dart';
+import '../../../../../../core/constants/app_sizes.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -38,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _nextPage() async {
     if (_currentIndex == 1) {
       await AppPreferences.setOnboardingCompleted(true);
-      if (mounted) context.go('/role');
+      if (mounted) context.push('/role');
     } else {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -50,6 +50,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: _currentIndex == 1
+          ? AppBar(
+              elevation: 0,
+              backgroundColor: const Color(0xFFF5F6FA),
+              leadingWidth: 56,
+              leading: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only( left: 8),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 18,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () {
+                      _controller.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              title: Text(
+                "BDM Master",
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+              ),
+              centerTitle: true,
+              toolbarHeight: 80,
+            )
+          : null,
       body: Padding(
         padding: const EdgeInsets.all(AppSizes.padding),
         child: Column(
@@ -89,14 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 60),
-
-                        Text(
-                          "BDM Master",
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 20),
 
                         _featureCard(
                           icon: Icons.menu_book_outlined,
@@ -163,6 +191,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
+
 Widget _featureCard({
   required IconData icon,
   required String title,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_colors.dart';
 
-class AppButton extends StatelessWidget {
+class AppButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isLoading;
@@ -15,26 +15,40 @@ class AppButton extends StatelessWidget {
   });
 
   @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: AppSizes.buttonHeight,
       child: GestureDetector(
-        onTap: isLoading ? null : onPressed,
-        child: Container(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.isLoading ? null : widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            gradient: isLoading
+            gradient: widget.isLoading
                 ? null
-                : const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primary],
+                : LinearGradient(
+                    colors: _isPressed 
+                        ? [AppColors.primary.withOpacity(0.8), AppColors.primary.withOpacity(0.8)]
+                        : [AppColors.primary, AppColors.primary],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
-            color: isLoading ? AppColors.border : null,
+            color: widget.isLoading ? AppColors.border : null,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
-          child: isLoading
+          transform: _isPressed ? (Matrix4.identity()..scale(0.98)) : Matrix4.identity(),
+          child: widget.isLoading
               ? const SizedBox(
                   height: 22,
                   width: 22,
@@ -44,7 +58,7 @@ class AppButton extends StatelessWidget {
                   ),
                 )
               : Text(
-                  text,
+                  widget.text,
                   style: const TextStyle(
                     color: AppColors.white,
                     fontWeight: FontWeight.w600,

@@ -5,6 +5,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
   final bool isPassword;
+  final int? maxLines;
   final String? Function(String?)? validator;
 
   const CustomTextField({
@@ -12,6 +13,7 @@ class CustomTextField extends StatefulWidget {
     required this.controller,
     required this.hint,
     this.isPassword = false,
+    this.maxLines = 1,
     this.validator,
   });
 
@@ -34,10 +36,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       obscureText: _obscureText,
       validator: widget.validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      maxLines: widget.maxLines,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
       decoration: InputDecoration(
         hintText: widget.hint,
         hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 13),
+        errorMaxLines: 2,
 
         filled: true,
         fillColor: AppColors.white,

@@ -1,7 +1,11 @@
-export 'onboarding_screen.dart';
+export 'onboarding/onboarding_screen.dart';
 export 'login_screen.dart';
-export 'RegisterScreen.dart';
-export 'forgot_password_screen.dart';
-export 'reset_password_screen.dart';
-export 'otp_screen.dart';
-export 'verified_screen.dart';
+export 'mentee/mentee_register_screen.dart';
+export 'reset_password/forgot_password_screen.dart';
+export 'reset_password/reset_password_screen.dart';
+export 'regotp/reg_otp_screen.dart';
+export 'regotp/verified_screen.dart';
+export 'mentor/mentor_register_screen.dart';
+export 'industry/industry_register_screen.dart';
+export 'institution/institution_register_screen.dart';
+export 'reset_password/psw_reseted_screen.dart';

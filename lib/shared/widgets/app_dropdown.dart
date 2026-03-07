@@ -21,7 +21,6 @@ class AppDropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Recommendation: Ensure 'value' exists in 'items' to prevent crashes
     final bool isValidValue = value != null && items.contains(value);
 
     return Column(
@@ -29,13 +28,13 @@ class AppDropdownField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontSize: 14,
+          style: const TextStyle(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: 8), // Increased spacing for better tap clarity
+        const SizedBox(height: 6), 
         DropdownButtonFormField<String>(
           value: isValidValue ? value : null,
           validator: validator,
@@ -43,48 +42,63 @@ class AppDropdownField extends StatelessWidget {
           isExpanded: true,
           hint: Text(
             hint,
-            style: const TextStyle(color: AppColors.textLight, fontSize: 14),
+            style: const TextStyle(color: AppColors.textLight, fontSize: 13),
           ),
-          // Improvement: Customize the dropdown menu appearance
           dropdownColor: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           icon: const Icon(
-            Icons.keyboard_arrow_down_rounded, // Rounded icons look more modern
+            Icons.keyboard_arrow_down_rounded,
             color: AppColors.textLight,
             size: 22,
           ),
-          // Improvement: Style the text inside the menu items
           selectedItemBuilder: (BuildContext context) {
             return items.map<Widget>((String item) {
               return Text(
                 item,
                 style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               );
             }).toList();
           },
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            // Reusable border style helper
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             enabledBorder: _buildBorder(AppColors.border),
             focusedBorder: _buildBorder(AppColors.primary, width: 1.5),
             errorBorder: _buildBorder(Colors.red),
             focusedErrorBorder: _buildBorder(Colors.red, width: 1.5),
           ),
-          // Recommendation: Map items with unique keys to optimize rebuilds
           items: items.map((String item) {
+            final bool isSelected = value == item;
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(
-                item,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textDark,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                          color: isSelected ? AppColors.primary : AppColors.textDark,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      isSelected 
+                          ? Icons.radio_button_checked_rounded 
+                          : Icons.radio_button_off_rounded,
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      size: 20,
+                    ),
+                  ],
                 ),
               ),
             );
@@ -94,7 +108,6 @@ class AppDropdownField extends StatelessWidget {
     );
   }
 
-  // Helper method to keep code clean
   OutlineInputBorder _buildBorder(Color color, {double width = 1}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
