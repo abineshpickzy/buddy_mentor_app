@@ -11,268 +11,302 @@ class MenteeHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<WeekItem> weeks = sampleWeeks;
-    final authState = ref.watch(authControllerProvider,); // Use watch to listen to changes
-    final programOverview =ref.watch(programOverviewProvider); // Watch the program overview provider
+    final authState = ref.watch(authControllerProvider);
+    final programOverview = ref.watch(programOverviewProvider);
+
+    final firstName = authState.fullUserData?["first_name"] ?? "there";
+    final programName = programOverview.value?['program_name'] ?? 'My Program';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
+            icon: const Icon(Icons.menu_rounded, color: Colors.black87),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         title: Text(
-          programOverview.value?['program_name'] ?? 'Loading...',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppColors.textDark,
+          programName,
+          style: const TextStyle(
+            color: Colors.black87,
             fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontSize: 17,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
         centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 14),
             child: GestureDetector(
-              onTap: () {
-                context.push('/menteeprofile');
-              },
-              child: const CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, size: 18, color: Colors.white),
+              onTap: () => context.push('/menteeprofile'),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary.withOpacity(0.12),
+                child: Icon(Icons.person_rounded, size: 20, color: AppColors.primary),
               ),
             ),
           ),
         ],
       ),
+      drawer: _buildDrawer(context, ref, authState),
+      body: programOverview.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => const Center(child: Text('Error loading program')),
+        data: (data) {
+          final moduleList = data['wheel_modules'] as List? ?? [];
+          final totalWeeks = moduleList.length;
+          final completedWeeks = 1;
+             
+          final progress =
+              totalWeeks > 0 ? completedWeeks / totalWeeks : 0.0;
 
-      drawer: Drawer(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(0),
-            bottomRight: Radius.circular(0),
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 60),
-            const CircleAvatar(
-              radius: 40,
-              backgroundImage: AssetImage('assets/images/logo.png'),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "${authState.fullUserData?["first_name"] ?? ""} ${authState.fullUserData?["last_name"] ?? "Alex Thompson"}"
-                  .trim(),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-
-            Text(
-              authState.fullUserData?["email"]?["id"] ?? "alexthompson@bu.edu",
-
-              style: TextStyle(color: Colors.grey),
-            ),
-            const Divider(height: 40),
-            _drawerItem(Icons.home, "Home", true, null),
-            _drawerItem(
-              Icons.mail,
-              "Contact Us",
-              false,
-              () => context.push('/contactus'),
-            ),
-            const Spacer(),
-            const Divider(height: 1),
-            _drawerItem(Icons.logout, "Sign Out", false, () async {
-              await ref.read(authControllerProvider.notifier).logout();
-              if (context.mounted) {
-                context.go('/role');
-              }
-            }),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // Progress Circle
-            SizedBox(
-              height: 160,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    height: 130,
-                    width: 130,
-                    child: CircularProgressIndicator(
-                      value: 1 / 16,
-                      strokeWidth: 10,
-                      backgroundColor: Colors.grey.shade300,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        "1",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text("of 16 weeks", style: TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Resume Button
-            SizedBox(
-              width: 200,
-              height: 45,
-              child: ElevatedButton.icon(
-                onPressed: () => context.push('/menteemap'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.play_arrow_outlined,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  "Start Week 1",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "WEEKLY SKILL TITLES",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            Expanded(
-              child: programOverview.when(
-                data: (data) => ListView.builder(
-                  itemCount: data['wheel_modules']?.length ?? 0,
-                  physics: const BouncingScrollPhysics(),
-                  cacheExtent: 200,
-                  itemBuilder: (context, index) {
-                    final week = data['wheel_modules'][index];
-                    if (week == null) return const SizedBox();
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // ── Progress circle + button ────────────────────────────
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 160,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          /// LEFT SIDE (80%)
-                          Expanded(
-                            flex: 7,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  margin: const EdgeInsets.only(top: 6),
-                                  decoration: BoxDecoration(
-                                    color: _getStatusColor(week['status'] ?? 'pending'),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-
-                                /// Text section
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Week ${week['order_no'] ?? index + 1}",
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      Text(
-                                        week['name'] ?? 'Module ${index + 1}',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          SizedBox(
+                            height: 130,
+                            width: 130,
+                            child: CircularProgressIndicator(
+                              value: progress,
+                              strokeWidth: 10,
+                              backgroundColor: Colors.grey.shade300,
+                              color: AppColors.primary,
                             ),
                           ),
-
-                          /// RIGHT SIDE (30%)
-                          Expanded(
-                            flex: 3,
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                _getStatusText(week['status'] ?? 'pending'),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$completedWeeks',
                                 style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
+                              Text(
+                                'of $totalWeeks weeks',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: 220,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/menteemap'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.play_arrow_outlined,
+                            color: Colors.white),
+                        label: Text(
+                          completedWeeks == 0
+                              ? 'Start Week 1'
+                              : 'Resume Week ${completedWeeks + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => const Center(child: Text('Error loading modules')),
               ),
+
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 10),
+                  child: Text(
+                    'WEEKLY SKILL TITLES',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Modules list ────────────────────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final week = moduleList[index];
+                      if (week == null) return const SizedBox();
+                      final status = week['status'] ?? 'pending';
+                      final statusColor = _getStatusColor(status);
+                      final isCompleted = status == 'completed';
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Small status dot
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: statusColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Week label + name
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Week ${week['order_no'] ?? index + 1}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      week['name'] ?? 'Module ${index + 1}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: status == 'locked'
+                                            ? Colors.grey
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Plain status text
+                              SizedBox(
+                                width: 80,
+                                child: Text(
+                                  _getStatusText(status),
+                                  textAlign: TextAlign.right,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: statusColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: moduleList.length,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // ── Drawer ──────────────────────────────────────────────────────────
+  Widget _buildDrawer(
+      BuildContext context, WidgetRef ref, dynamic authState) {
+    final fullName =
+        "${authState.fullUserData?["first_name"] ?? ""} ${authState.fullUserData?["last_name"] ?? ""}"
+            .trim();
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      child: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            CircleAvatar(
+              radius: 38,
+              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundImage: const AssetImage('assets/images/logo.png'),
             ),
+            const SizedBox(height: 12),
+            Text(
+              fullName.isEmpty ? 'Alex Thompson' : fullName,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                  color: Colors.black87),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              authState.fullUserData?["email"]?["id"] ??
+                  "alexthompson@bu.edu",
+              style:
+                  TextStyle(color: Colors.grey.shade500, fontSize: 13),
+            ),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey.shade100, height: 1),
+            const SizedBox(height: 8),
+            _drawerItem(Icons.home_rounded, "Home", true, null),
+            _drawerItem(Icons.mail_outline_rounded, "Contact Us", false,
+                () {
+                  Navigator.of(context).pop(); // Close drawer first
+                  context.push('/contactus');
+                }),
+            const Spacer(),
+            Divider(color: Colors.grey.shade100, height: 1),
+            _drawerItem(Icons.logout_rounded, "Sign Out", false, () async {
+              Navigator.of(context).pop(); // Close drawer first
+              await ref.read(authControllerProvider.notifier).logout();
+              if (context.mounted) context.go('/role');
+            }),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -280,19 +314,23 @@ class MenteeHomeScreen extends ConsumerWidget {
   }
 
   static Widget _drawerItem(
-    IconData icon,
-    String title,
-    bool selected,
-    VoidCallback? onTap,
-  ) {
+      IconData icon, String title, bool selected, VoidCallback? onTap) {
     return ListTile(
-      leading: Icon(icon, color: selected ? AppColors.primary : Colors.grey),
+      leading: Icon(icon,
+          color: selected ? AppColors.primary : Colors.grey.shade600,
+          size: 22),
       title: Text(
         title,
-        style: TextStyle(color: selected ? AppColors.primary : Colors.black),
+        style: TextStyle(
+          color: selected ? AppColors.primary : Colors.black87,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          fontSize: 15,
+        ),
       ),
-      selected: selected,
       onTap: onTap,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      horizontalTitleGap: 8,
     );
   }
 
@@ -301,7 +339,7 @@ class MenteeHomeScreen extends ConsumerWidget {
       case "completed":
         return Colors.green;
       case "in_progress":
-        return Colors.blue;
+        return AppColors.primary;
       case "not_started":
         return Colors.orange;
       case "locked":
@@ -311,10 +349,25 @@ class MenteeHomeScreen extends ConsumerWidget {
     }
   }
 
+  static IconData _getStatusIcon(String status) {
+    switch (status) {
+      case "completed":
+        return Icons.check_circle_rounded;
+      case "in_progress":
+        return Icons.play_circle_rounded;
+      case "not_started":
+        return Icons.radio_button_unchecked_rounded;
+      case "locked":
+        return Icons.lock_rounded;
+      default:
+        return Icons.radio_button_unchecked_rounded;
+    }
+  }
+
   static String _getStatusText(String status) {
     switch (status) {
       case "completed":
-        return "Complete";
+        return "Done";
       case "in_progress":
         return "In Progress";
       case "not_started":

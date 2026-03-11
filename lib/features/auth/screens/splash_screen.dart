@@ -54,7 +54,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           String dashboardRoute;
           switch (userType) {
             case 1:
-              dashboardRoute = '/menteedashboard';
+              dashboardRoute = '/programlist';
               break;
             case 2:
               dashboardRoute = '/mentordashboard';
@@ -66,7 +66,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               dashboardRoute = '/industrydashboard';
               break;
             default:
-              dashboardRoute = '/menteedashboard';
+              dashboardRoute = '/programlist';
           }
           context.go(dashboardRoute);
         } else if (completed) {

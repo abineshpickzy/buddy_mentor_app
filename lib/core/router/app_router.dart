@@ -9,6 +9,7 @@ import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/scr
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_timeline_screen.dart';
 import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
+import 'package:buddymentor/features/mentee/program_purchase/screens/programs_list.dart';
 import 'package:buddymentor/features/mentor/dashboard/views/mentor_dashboard_screen.dart';
 import 'package:buddymentor/features/industry/dashboard/views/industry_dashboard_screen.dart';
 import 'package:buddymentor/features/institution/dashboard/views/institution_dashboard_screen.dart';
@@ -67,6 +68,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/verified', builder: (_, __) => const VerifiedScreen()),
 
+    GoRoute(path: '/programlist', builder: (_,__) => const ProgramList() ),
+
     /// DASHBOARD SHELL (Persistent Bottom Bar)
     ShellRoute(
       builder: (context, state, child) {
@@ -97,7 +100,6 @@ final GoRouter appRouter = GoRouter(
       builder: (_, __) => const ChapterSessions(),
     ),
         // analitics 
-
         GoRoute(
             path:'/menteeanalytics',
             builder:(_, __) => const MenteeAnalyticsScreen(),
@@ -113,6 +115,8 @@ final GoRouter appRouter = GoRouter(
         ),
       ],
     ),
+
+
 
     // Other Dashboard Routes
     GoRoute(

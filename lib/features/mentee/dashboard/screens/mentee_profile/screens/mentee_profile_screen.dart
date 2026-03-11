@@ -6,62 +6,56 @@ import 'package:go_router/go_router.dart';
 class MenteeProfileScreen extends ConsumerWidget {
   const MenteeProfileScreen({super.key});
 
+  static const _primaryBlue = Color(0xFF2D4383);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final userData = authState.fullUserData;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE), // Light greyish background
+      backgroundColor: const Color(0xFFF8F9FE),
+      appBar: AppBar(
+        backgroundColor: _primaryBlue,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+      ), // Light greyish background
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Remove the duplicate blue header since we now have AppBar
             Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                // 1. Blue Header Background
+                // Blue background (reduced height)
                 Container(
-                  height: 180,
+                  height: 80,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2D4383), // Dark blue from image
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: () => context.pop(),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 12),
-                            child: Text(
-                              "Profile",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_none, color: Colors.white),
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  color: _primaryBlue,
                 ),
 
-                // 2. Profile Image (Overlapping)
+                // Profile Image (Overlapping)
                 Positioned(
-                  top: 120,
+                  top: 30,
                   child: Column(
                     children: [
                       Container(
@@ -72,24 +66,7 @@ class MenteeProfileScreen extends ConsumerWidget {
                         ),
                         child: const CircleAvatar(
                           radius: 40,
-                          backgroundImage: AssetImage('assets/images/logo.png'), // Use any image as a placeholder
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "${userData?["first_name"] ?? ""} ${userData?["last_name"] ?? "User"}".trim(),
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF333333),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Mentee • ID: ${userData?["mentee_id"] ?? "Loading..."}",
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
+                          backgroundImage: AssetImage('assets/images/logo.png'),
                         ),
                       ),
                     ],
@@ -98,8 +75,28 @@ class MenteeProfileScreen extends ConsumerWidget {
               ],
             ),
 
-            // Spacing for the overlapping header
-            const SizedBox(height: 100),
+            // Spacing for the overlapping avatar
+            const SizedBox(height: 50),
+
+            // Name and ID below avatar
+            Text(
+              "${userData?["first_name"] ?? ""} ${userData?["last_name"] ?? "User"}".trim(),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF333333),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Mentee • ID: ${userData?["mentee_id"]?.toString() ?? "Loading..."}",
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+
+            const SizedBox(height: 24),
 
             // 3. Info Card
             Padding(
@@ -120,7 +117,7 @@ class MenteeProfileScreen extends ConsumerWidget {
                     const Divider(height: 1),
                     _buildInfoRow(Icons.location_on_outlined, "STATE", userData?["state"] ?? "Tamil Nadu"),
                     const Divider(height: 1),
-                    _buildInfoRow(Icons.badge_outlined, "MENTEE ID", userData?["mentee_id"] ?? "91TNCH00002"),
+                    _buildInfoRow(Icons.badge_outlined, "MENTEE ID", userData?["mentee_id"]?.toString() ?? "91TNCH00002"),
                   ],
                 ),
               ),

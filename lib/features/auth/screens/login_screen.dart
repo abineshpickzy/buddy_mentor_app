@@ -160,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           String dashboardRoute;
                           switch (userType) {
                             case 1:
-                              dashboardRoute = '/menteedashboard';
+                              dashboardRoute = '/programlist';
                               break;
                             case 2:
                               dashboardRoute = '/mentordashboard';
@@ -172,7 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               dashboardRoute = '/industrydashboard';
                               break;
                             default:
-                              dashboardRoute = '/menteedashboard';
+                              dashboardRoute = '/programlist';
                           }
                           context.go(dashboardRoute);
                         }

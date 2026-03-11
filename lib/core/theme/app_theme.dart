@@ -7,19 +7,23 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.background,
     primaryColor: AppColors.primary,
+    fontFamily: GoogleFonts.inter().fontFamily, // Set Inter as default font
 
     textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-      headlineMedium: const TextStyle(
+      headlineMedium: GoogleFonts.inter(
         fontSize: 22,
         fontWeight: FontWeight.w700,
         color: AppColors.textDark,
       ),
-      headlineSmall: const TextStyle(
+      headlineSmall: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.textDark,
       ),
-      bodyMedium: const TextStyle(fontSize: 14, color: AppColors.textLight),
+      bodyMedium: GoogleFonts.inter(
+        fontSize: 14, 
+        color: AppColors.textLight,
+      ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
