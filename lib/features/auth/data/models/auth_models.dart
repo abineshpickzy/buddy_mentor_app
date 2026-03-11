@@ -1,16 +1,19 @@
 class AuthUser {
   final String id;
   final int userType;
+  final String? uuid;
 
   AuthUser({
     required this.id,
     required this.userType,
+    this.uuid,
   });
 
   factory AuthUser.fromMap(Map<String, dynamic> map) {
     return AuthUser(
       id: map['_id'] ?? '',
       userType: map['user_type'] ?? 0,
+      uuid: map['uuid'],
     );
   }
 
@@ -18,6 +21,7 @@ class AuthUser {
     return {
       '_id': id,
       'user_type': userType,
+      if (uuid != null) 'uuid': uuid,
     };
   }
 }

@@ -137,72 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
 
               const SizedBox(height: 18),
-
-              /// OTP HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Login through OTP",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  secondsRemaining > 0
-                      ? Text(
-                          "Resend in $formattedTime",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textLight,
-                          ),
-                        )
-                      : TextButton(
-                          onPressed: () {
-                            if (emailController.text.isEmpty ||
-                                Validators.email(emailController.text) !=
-                                    null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Please enter a valid email to get OTP",
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-                            _startTimer();
-                            AppToast.show(
-                              context,
-                              message: "OTP sent to ${emailController.text}",
-                              type: ToastType.success,
-                            );
-                            /// TODO: Call API to send OTP
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            "Get OTP",
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              CustomTextField(controller: otpController, hint: "Enter OTP"),
-
-              const SizedBox(height: 30),
-
+              
               /// LOGIN BUTTON
               AppButton(
                 text: "Login",

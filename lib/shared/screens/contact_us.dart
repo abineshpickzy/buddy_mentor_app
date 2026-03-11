@@ -64,7 +64,7 @@ class ContactUsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             const Text(
               'Send a Message',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

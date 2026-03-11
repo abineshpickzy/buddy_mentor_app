@@ -3,11 +3,12 @@ import 'package:buddymentor/features/auth/screens/splash_screen.dart';
 import 'package:buddymentor/features/auth/screens/reset_password/reset_otp_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_dashboard_shell.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_home_page/screens/mentee_home_screen.dart';
-import 'package:buddymentor/features/mentee/dashboard/screens/mentee_circular_map/mentee_map_screen.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_circular_map/screens/mentee_map_screen.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_analytics/screens/mentee_analytics_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_edit.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_timeline_screen.dart';
-import 'package:buddymentor/features/mentee/dashboard/screens/mentee_wisdomtree/mentee_tree_screen.dart';
+import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:buddymentor/features/mentor/dashboard/views/mentor_dashboard_screen.dart';
 import 'package:buddymentor/features/industry/dashboard/views/industry_dashboard_screen.dart';
 import 'package:buddymentor/features/institution/dashboard/views/institution_dashboard_screen.dart';
@@ -91,13 +92,16 @@ final GoRouter appRouter = GoRouter(
           path: '/menteemap',
           builder: (_, __) => const MenteeMapScreen(),
         ),
+         GoRoute(
+      path :'/menteemap/chaptersession',
+      builder: (_, __) => const ChapterSessions(),
+    ),
+        // analitics 
 
-        // Wisdom Tree
         GoRoute(
-          path: '/menteetree',
-          builder: (_, __) => const MenteeTreeScreen(),
+            path:'/menteeanalytics',
+            builder:(_, __) => const MenteeAnalyticsScreen(),
         ),
-
         // Profile
         GoRoute(
           path: '/menteeprofile',
@@ -123,7 +127,7 @@ final GoRouter appRouter = GoRouter(
       path: '/institutiondashboard',
       builder: (_, __) => const InstitutionDashboardScreen(),
     ),
-
-    GoRoute( path: '/contactus', builder: (_, __) => const ContactUsScreen() )
+   
+      GoRoute( path: '/contactus', builder: (_, __) => const ContactUsScreen() )  
   ],
 );

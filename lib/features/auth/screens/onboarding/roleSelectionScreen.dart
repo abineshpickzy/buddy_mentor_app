@@ -24,6 +24,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       appBar: const CustomAppBar(
         title: "Select Your Role",
         subtitle: "Select the role that best describes\nyou to continue",
+        showBackButton: false,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(

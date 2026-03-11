@@ -5,11 +5,13 @@ import 'package:buddymentor/core/constants/app_colors.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String subtitle;
+  final bool showBackButton;
 
   const CustomAppBar({
     super.key,
     required this.title,
     required this.subtitle,
+    this.showBackButton = true,
   });
 
   @override
@@ -20,7 +22,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
       toolbarHeight: 120,
-      leading: Padding(
+      leading: showBackButton ? Padding(
         padding: const EdgeInsets.only(top: 8, left: 4),
         child: Align(
           alignment: Alignment.topLeft,
@@ -33,7 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () => context.pop(),
           ),
         ),
-      ),
+      ) : null,
       flexibleSpace: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(top: 20),

@@ -1,5 +1,6 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
+import 'package:buddymentor/features/mentee/dashboard/controllers/program_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,9 +12,8 @@ class MenteeHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<WeekItem> weeks = sampleWeeks;
-    final authState = ref.watch(
-      authControllerProvider,
-    ); // Use watch to listen to changes
+    final authState = ref.watch(authControllerProvider,); // Use watch to listen to changes
+    final programOverview =ref.watch(programOverviewProvider); // Watch the program overview provider
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -27,14 +27,13 @@ class MenteeHomeScreen extends ConsumerWidget {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title:  Text(
-          "Engineering Program",
+        title: Text(
+          programOverview.value?['program_name'] ?? 'Loading...',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.textDark,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-
-              ),
+            color: AppColors.textDark,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -117,7 +116,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                     height: 130,
                     width: 130,
                     child: CircularProgressIndicator(
-                      value: 3 / 16,
+                      value: 1 / 16,
                       strokeWidth: 10,
                       backgroundColor: Colors.grey.shade300,
                       color: AppColors.primary,
@@ -127,7 +126,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
                       Text(
-                        "3",
+                        "1",
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -147,7 +146,7 @@ class MenteeHomeScreen extends ConsumerWidget {
               width: 200,
               height: 45,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => context.push('/menteemap'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
@@ -159,7 +158,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                   color: Colors.white,
                 ),
                 label: const Text(
-                  "Resume Week 4",
+                  "Start Week 1",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -185,88 +184,93 @@ class MenteeHomeScreen extends ConsumerWidget {
             const SizedBox(height: 15),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: weeks.length,
-                physics: const BouncingScrollPhysics(),
-                cacheExtent: 200,
-                itemBuilder: (context, index) {
-                  final week = weeks[index];
+              child: programOverview.when(
+                data: (data) => ListView.builder(
+                  itemCount: data['wheel_modules']?.length ?? 0,
+                  physics: const BouncingScrollPhysics(),
+                  cacheExtent: 200,
+                  itemBuilder: (context, index) {
+                    final week = data['wheel_modules'][index];
+                    if (week == null) return const SizedBox();
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// LEFT SIDE (80%)
-                        Expanded(
-                          flex: 7,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 10,
-                                height: 10,
-                                margin: const EdgeInsets.only(top: 6),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(week.status),
-                                  shape: BoxShape.circle,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// LEFT SIDE (80%)
+                          Expanded(
+                            flex: 7,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  margin: const EdgeInsets.only(top: 6),
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(week['status'] ?? 'pending'),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
+                                const SizedBox(width: 12),
 
-                              /// Text section
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Week ${week.week}",
-                                      style: const TextStyle(
-                                        color: Colors.grey,
+                                /// Text section
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Week ${week['order_no'] ?? index + 1}",
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      week.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                      Text(
+                                        week['name'] ?? 'Module ${index + 1}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
 
-                        /// RIGHT SIDE (30%)
-                        Expanded(
-                          flex: 3,
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              _getStatusText(week.status),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
+                          /// RIGHT SIDE (30%)
+                          Expanded(
+                            flex: 3,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                _getStatusText(week['status'] ?? 'pending'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => const Center(child: Text('Error loading modules')),
               ),
             ),
           ],
@@ -294,10 +298,14 @@ class MenteeHomeScreen extends ConsumerWidget {
 
   static Color _getStatusColor(String status) {
     switch (status) {
-      case "complete":
+      case "completed":
         return Colors.green;
       case "in_progress":
         return Colors.blue;
+      case "not_started":
+        return Colors.orange;
+      case "locked":
+        return Colors.grey;
       default:
         return Colors.orange;
     }
@@ -305,10 +313,14 @@ class MenteeHomeScreen extends ConsumerWidget {
 
   static String _getStatusText(String status) {
     switch (status) {
-      case "complete":
+      case "completed":
         return "Complete";
       case "in_progress":
         return "In Progress";
+      case "not_started":
+        return "Start";
+      case "locked":
+        return "Locked";
       default:
         return "Pending";
     }

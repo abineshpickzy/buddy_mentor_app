@@ -40,12 +40,20 @@ class AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     final token = await StorageService.getAccessToken();
+    final user = await StorageService.getUser();
+    
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
-      print('🔑 Adding Bearer token to request: ${options.uri}');
+      print('🔑 Adding Bearer token to request: ${options.uri},token:${token}');
     } else {
       print('⚠️ No token found for request: ${options.uri}');
     }
+    
+    if (user?.uuid != null) {
+      options.headers['X-User-UUID'] = user!.uuid!;
+      print('🆔 Adding UUID header: ${user.uuid}');
+    }
+    
     handler.next(options);
   }
   

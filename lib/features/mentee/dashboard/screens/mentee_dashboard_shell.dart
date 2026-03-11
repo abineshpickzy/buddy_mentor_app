@@ -9,7 +9,7 @@ class MenteeDashboardShell extends StatelessWidget {
   int _getIndex(String location) {
     if (location.startsWith('/menteetimeline')) return 1;
     if (location.startsWith('/menteemap')) return 2;
-    if (location.startsWith('/menteetree')) return 3;
+    if (location.startsWith('/menteeanalytics')) return 3;
     if (location.startsWith('/menteeprofile')) return 4;
     return 0;
   }
@@ -34,7 +34,7 @@ class MenteeDashboardShell extends StatelessWidget {
               context.push('/menteemap');
               break;
             case 3:
-              context.push('/menteetree');
+              context.push('/menteeanalytics');
               break;
             case 4:
               context.push('/menteeprofile');
@@ -51,10 +51,7 @@ class MenteeDashboardShell extends StatelessWidget {
             label: "Timeline",
           ),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: "Map"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_tree),
-            label: "Tree",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: "Analytics"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),

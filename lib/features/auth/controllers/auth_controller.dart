@@ -17,6 +17,8 @@ class AuthController extends Notifier<AuthState> {
       final user = await StorageService.getUser();
       final tokens = await StorageService.getTokens();
       
+      print('🔄 Loading from storage: ID=${user?.id}, Type=${user?.userType}, UUID=${user?.uuid}');
+      
       if (user != null && tokens != null) {
         state = state.copyWith(
           user: user,
@@ -39,12 +41,16 @@ class AuthController extends Notifier<AuthState> {
   Future<void> setAuthData(Map<String, dynamic> responseData) async {
     try {
       final userProfile = responseData['data']['user_profile'];
+      print('💾 Saving user profile: ID=${userProfile['_id']}, Type=${userProfile['user_type']}, UUID=${userProfile['uuid']}');
+      
       final user = AuthUser.fromMap(userProfile);
       final tokens = AuthTokens.fromMap(responseData['data']);
       
       // Save minimal user data to storage
       await StorageService.saveUser(user);
       await StorageService.saveTokens(tokens);
+      
+      print('✅ User saved to storage: ID=${user.id}, Type=${user.userType}, UUID=${user.uuid}');
       
       // Update state with minimal user data
       state = state.copyWith(
