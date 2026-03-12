@@ -16,5 +16,7 @@ class ApiEndpoints {
   static const disciplineList = "discipline/ls";
   static const countryList = "country/ls";
   static const programList = "prgm/ls";
+  static const programListNew = "prgm/list";
   static const programOverview = "prgm/ovw";
+  static const fetchProgram = "prgm/{productId}/trial";
 }

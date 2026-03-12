@@ -1,21 +1,24 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
-import 'package:buddymentor/features/mentee/dashboard/controllers/program_controller.dart';
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../models/week_item.dart';
 
 class MenteeHomeScreen extends ConsumerWidget {
+
+  
   const MenteeHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
-    final programOverview = ref.watch(programOverviewProvider);
+    final programOverviewAsync = ref.watch(programOverviewProvider);
 
     final firstName = authState.fullUserData?["first_name"] ?? "there";
-    final programName = programOverview.value?['program_name'] ?? 'My Program';
+    
+    // Get program name from the fetched program overview data
+    final programName = programOverviewAsync.value?.program.name ?? 'My Program';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,16 +57,46 @@ class MenteeHomeScreen extends ConsumerWidget {
         ],
       ),
       drawer: _buildDrawer(context, ref, authState),
-      body: programOverview.when(
+      body: programOverviewAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => const Center(child: Text('Error loading program')),
-        data: (data) {
-          final moduleList = data['wheel_modules'] as List? ?? [];
+        error: (e, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error loading program: $e'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                 
+                
+                  
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        data: (programOverview) {
+          if (programOverview == null) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.info_outline, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('No program data available'),
+                ],
+              ),
+            );
+          }
+          
+          final moduleList = programOverview.hierarchy.modules;
           final totalWeeks = moduleList.length;
-          final completedWeeks = 1;
+          final completedWeeks = moduleList.where((module) => module.status == 2).length;
              
-          final progress =
-              totalWeeks > 0 ? completedWeeks / totalWeeks : 0.0;
+          final progress = totalWeeks > 0 ? completedWeeks / totalWeeks : 0.0;
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -160,11 +193,15 @@ class MenteeHomeScreen extends ConsumerWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final week = moduleList[index];
-                      if (week == null) return const SizedBox();
-                      final status = week['status'] ?? 'pending';
+                      final module = moduleList[index];
+                      final status = module.isLocked 
+                          ? 'locked' 
+                          : (module.status == 2 
+                              ? 'completed' 
+                              : (module.status == 1 
+                                  ? 'in_progress' 
+                                  : 'not_started'));
                       final statusColor = _getStatusColor(status);
-                      final isCompleted = status == 'completed';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
@@ -202,7 +239,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Week ${week['order_no'] ?? index + 1}',
+                                      'Week ${module.orderNo}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey.shade500,
@@ -210,7 +247,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 3),
                                     Text(
-                                      week['name'] ?? 'Module ${index + 1}',
+                                      module.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(

@@ -31,7 +31,7 @@ class MenteeTimelineScreen extends StatelessWidget {
                     ),
                   ),
                   const Text(
-                    'Program Timeline',
+                    'Skill Chapters Timeline',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

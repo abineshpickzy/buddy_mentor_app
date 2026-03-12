@@ -90,15 +90,7 @@ final GoRouter appRouter = GoRouter(
           builder: (_, __) => const MenteeTimelineScreen(),
         ),
 
-        //  Circular Map
-        GoRoute(
-          path: '/menteemap',
-          builder: (_, __) => const MenteeMapScreen(),
-        ),
-         GoRoute(
-      path :'/menteemap/chaptersession',
-      builder: (_, __) => const ChapterSessions(),
-    ),
+      
         // analitics 
         GoRoute(
             path:'/menteeanalytics',
@@ -116,7 +108,15 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
 
-
+  //  Circular Map
+        GoRoute(
+          path: '/menteemap',
+          builder: (_, __) => const MenteeMapScreen(),
+        ),
+          GoRoute(
+        path :'/menteemap/chaptersession',
+        builder: (_, __) => const ChapterSessions(),
+      ),
 
     // Other Dashboard Routes
     GoRoute(

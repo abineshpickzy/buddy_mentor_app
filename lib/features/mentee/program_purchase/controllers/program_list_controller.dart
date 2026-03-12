@@ -2,17 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/program_list_model.dart';
 import '../services/program_list_service.dart';
+import '../../../../core/network/dio_client.dart';
 
 // Export the models for easier access
 export '../models/program_list_model.dart';
 
-// Dio provider
-final dioProvider = Provider<Dio>((ref) => Dio());
-
-// Service provider
+// Service provider using DioClient
 final programListServiceProvider = Provider<ProgramListService>((ref) {
-  final dio = ref.read(dioProvider);
-  return ProgramListService(dio);
+  return ProgramListService(DioClient.dio);
 });
 
 // Programs AsyncNotifier

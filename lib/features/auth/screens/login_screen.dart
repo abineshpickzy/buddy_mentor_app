@@ -40,20 +40,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _startTimer() {
-    secondsRemaining = 60;
-    timer?.cancel();
-    timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (secondsRemaining == 0) {
-        t.cancel();
-      } else {
-        setState(() {
-          secondsRemaining--;
-        });
-      }
-    });
-  }
-
   String get formattedTime {
     final minutes = (secondsRemaining ~/ 60).toString().padLeft(2, '0');
     final seconds = (secondsRemaining % 60).toString().padLeft(2, '0');
@@ -153,7 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       
                       if (response.statusCode == 200 && response.data['success'] == true) {
                         await ref.read(authControllerProvider.notifier).setAuthData(response.data);
-                        AppToast.show(context, message: "Login successful!", type: ToastType.success);
+                        AppToast.show( context, message: "Login successful!", type: ToastType.success);
                         
                         if (mounted) {
                           final userType = response.data['data']['user_profile']['user_type'] ?? 1;
@@ -205,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         TextSpan(
                           text: "Register here",
                           style: TextStyle(
-                            color: AppColors.secondary,
+                          color: AppColors.secondary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

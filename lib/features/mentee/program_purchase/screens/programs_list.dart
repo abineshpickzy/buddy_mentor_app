@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../controllers/program_list_controller.dart';
+import '../controllers/program_overview_controller.dart';
 import 'payment_page.dart';
 
 class ProgramList extends ConsumerWidget {
@@ -12,6 +13,7 @@ class ProgramList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final programsAsync = ref.watch(programsProvider);
     final statsAsync = ref.watch(programStatsProvider);
+
     
     return Scaffold(
      backgroundColor: Colors.white,
@@ -99,7 +101,7 @@ class ProgramList extends ConsumerWidget {
               data: (stats) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _StatCard(icon: Icons.book_outlined, value: stats.totalPrograms.toString(), label: "Total Programs", color: Colors.green),
+                  _StatCard(icon: Icons.book_outlined, value: "1" , label: "Total Programs", color: Colors.green),
                   _StatCard(icon: Icons.people_outline, value: stats.activeLearners, label: "Active Learners", color: Colors.blue),
                   _StatCard(icon: Icons.trending_up, value: stats.avgRating.toString(), label: "Avg. Rating", color: Colors.indigo),
                 ],
@@ -128,14 +130,16 @@ class ProgramList extends ConsumerWidget {
               data: (programs) => Column(
                 children: programs.map((program) => ProgramCard(
                   programId: program.id,
+                  productId: program.productId,
                   title: program.title,
                   desc: program.description,
                   weeks: program.weeks,
                   learners: program.learners,
                   rating: program.rating,
                   tag: program.tag,
-                  price: program.price,
+                  price: program.price ?? "₹0",
                   isEnrolled: program.isEnrolled,
+                  showFreeTrial: program.showFreeTrial,
                 )).toList(),
               ),
               loading: () => const Center(
@@ -196,17 +200,20 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class ProgramCard extends StatelessWidget {
+class ProgramCard extends ConsumerWidget {
   final String programId;
+  final String productId;
   final String title, desc, tag;
   final int weeks, learners;
   final double rating;
   final String? price;
   final bool isEnrolled;
+  final bool showFreeTrial;
 
   const ProgramCard({
     super.key,
     required this.programId,
+    required this.productId,
     required this.title,
     required this.desc, 
     required this.weeks,
@@ -215,10 +222,11 @@ class ProgramCard extends StatelessWidget {
     this.tag = "",
     this.price,
     this.isEnrolled = false,
+    this.showFreeTrial = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -301,12 +309,22 @@ class ProgramCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      isEnrolled ? "Free Trial Available" : (price ?? ""),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold, 
-                        fontSize: 15,
-                        color: isEnrolled ? Colors.black87 : Colors.black,
+                    GestureDetector(
+                      onTap: () async {
+                        if (showFreeTrial) {
+                          await ref.read(programOverviewProvider.notifier).fetchProgram(productId);
+                          if (context.mounted) {
+                            context.push('/menteedashboard');
+                          }
+                        }
+                      },
+                      child: Text(
+                        (isEnrolled || showFreeTrial) ? "Free Trial Available" : (price ?? ""),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 15,
+                          color: (isEnrolled || showFreeTrial ) ? Colors.black87 : Colors.black,
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -314,7 +332,7 @@ class ProgramCard extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          backgroundColor: isEnrolled ? AppColors.primaryDark: Colors.white,
+                          backgroundColor: (isEnrolled || showFreeTrial) ? AppColors.primaryDark: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
@@ -324,10 +342,12 @@ class ProgramCard extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           if (isEnrolled) {
-                            // Navigate to mentee dashboard
-                            context.push('/menteedashboard');
+                            await ref.read(programOverviewProvider.notifier).fetchProgram(productId);
+                            if (context.mounted) {
+                              context.push('/menteedashboard');
+                            }
                           } else {
                             // Navigate to payment page
                             Navigator.push(
@@ -344,9 +364,9 @@ class ProgramCard extends StatelessWidget {
                         },
                         child: Row(
                           children: [
-                            Text(isEnrolled ? "Continue" : "View", style: TextStyle(color: isEnrolled?Colors.white:Colors.black)),
+                            Text((isEnrolled || showFreeTrial) ? "Continue" : "View", style: TextStyle(color: (isEnrolled || showFreeTrial)?Colors.white:Colors.black)),
                             const SizedBox(width: 8),
-                             Icon(Icons.arrow_forward, size: 18, color: isEnrolled? Colors.white:Colors.black),
+                             Icon(Icons.arrow_forward, size: 18, color: (isEnrolled || showFreeTrial)? Colors.white:Colors.black),
                           ],
                         ),
                       ),
