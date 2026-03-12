@@ -3,6 +3,7 @@ import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../models/learning_map_models.dart';
 
+
 class LearningMapPainter extends CustomPainter {
   final Subject subject;
   final double rotationAngle;
@@ -116,12 +117,13 @@ class LearningMapPainter extends CustomPainter {
         shadowPaint,
       );
 
+      final moduleColor = _getStatusColor(module.status, module.isLocked);
       paint.shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          AppColors.secondary.withOpacity(opacity),
-          AppColors.secondary.withOpacity(opacity * 0.8),
+          moduleColor.withOpacity(opacity),
+          moduleColor.withOpacity(opacity * 0.8),
         ],
       ).createShader(
           Rect.fromCircle(center: center, radius: moduleOuterRadius));
@@ -173,8 +175,9 @@ class LearningMapPainter extends CustomPainter {
         final bandPath =
             _arcPath(center, bandInner, bandOuter, startAngle, sweep);
 
+        final chapterColor = _getStatusColor(chapter.status, chapter.isLocked);
         paint.shader = null;
-        paint.color  = AppColors.primary.withOpacity(chOpacity);
+        paint.color  = chapterColor.withOpacity(chOpacity);
         canvas.drawPath(bandPath, paint);
         canvas.drawPath(bandPath, strokePaint);
 
@@ -240,6 +243,16 @@ class LearningMapPainter extends CustomPainter {
   }
 
   double _o(double v) => v.clamp(0.0, 1.0);
+
+  Color _getStatusColor(int status, bool isLocked) {
+    if (isLocked) return const Color(0xFFD3D6DB); // Locked - Grey
+    switch (status) {
+      case 2: return const Color(0xFF3CB371); // Complete - Green
+      case 1: return const Color(0xFF3A5BA0); // In Progress - Blue
+      case 0: return const Color(0xFFD4A72C); // Pending - Yellow
+      default: return const Color(0xFFD4A72C); // Default to Pending
+    }
+  }
 
   Path _arcPath(Offset center, double inner, double outer,
       double startAngle, double sweep) {
