@@ -131,6 +131,7 @@ class ProgramList extends ConsumerWidget {
                 children: programs.map((program) => ProgramCard(
                   programId: program.id,
                   productId: program.productId,
+                  productType:program.type,
                   title: program.title,
                   desc: program.description,
                   weeks: program.weeks,
@@ -203,6 +204,7 @@ class _StatCard extends StatelessWidget {
 class ProgramCard extends ConsumerWidget {
   final String programId;
   final String productId;
+  final int productType;
   final String title, desc, tag;
   final int weeks, learners;
   final double rating;
@@ -214,6 +216,7 @@ class ProgramCard extends ConsumerWidget {
     super.key,
     required this.programId,
     required this.productId,
+    required this.productType,
     required this.title,
     required this.desc, 
     required this.weeks,
@@ -312,9 +315,9 @@ class ProgramCard extends ConsumerWidget {
                     GestureDetector(
                       onTap: () async {
                         if (showFreeTrial) {
-                          await ref.read(programOverviewProvider.notifier).fetchProgram(productId);
+                          await ref.read(programOverviewProvider.notifier).fetchtrialProgram(productId);
                           if (context.mounted) {
-                            context.push('/menteedashboard');
+                            context.push('/menteetrialtimeline');
                           }
                         }
                       },
@@ -344,12 +347,13 @@ class ProgramCard extends ConsumerWidget {
                         ),
                         onPressed: () async {
                           if (isEnrolled) {
-                            await ref.read(programOverviewProvider.notifier).fetchProgram(productId);
+                            // If enrolled, fetch program and go to dashboard
+                            await ref.read(programOverviewProvider.notifier).fetchProgram(programId, productType);
                             if (context.mounted) {
                               context.push('/menteedashboard');
                             }
                           } else {
-                            // Navigate to payment page
+                            // If not enrolled, navigate to payment page
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -357,6 +361,8 @@ class ProgramCard extends ConsumerWidget {
                                   programId: programId,
                                   programTitle: title,
                                   programPrice: price ?? "₹0",
+                                  productId: productId,
+                                  productType: productType,
                                 ),
                               ),
                             );

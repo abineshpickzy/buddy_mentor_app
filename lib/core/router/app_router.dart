@@ -8,6 +8,7 @@ import 'package:buddymentor/features/mentee/dashboard/screens/mentee_analytics/s
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_edit.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_timeline_screen.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_trial_timelinescreen.dart';
 import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:buddymentor/features/mentee/program_purchase/screens/programs_list.dart';
 import 'package:buddymentor/features/mentor/dashboard/views/mentor_dashboard_screen.dart';
@@ -108,15 +109,19 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
 
+  //  trial time line
+
+    GoRoute(
+          path: '/menteetrialtimeline',
+          builder: (_, __) => const MenteeTrialTimelineScreen(),
+        ),
   //  Circular Map
         GoRoute(
           path: '/menteemap',
           builder: (_, __) => const MenteeMapScreen(),
         ),
-          GoRoute(
-        path :'/menteemap/chaptersession',
-        builder: (_, __) => const ChapterSessions(),
-      ),
+     
+
 
     // Other Dashboard Routes
     GoRoute(

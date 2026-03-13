@@ -1,26 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../controllers/program_overview_controller.dart';
 
-class PaymentPage extends StatefulWidget {
+class PaymentPage extends ConsumerStatefulWidget {
   final String programId;
   final String programTitle;
   final String programPrice;
+  final String productId;
+  final int productType;
   
   const PaymentPage({
     super.key,
     required this.programId,
     required this.programTitle,
     required this.programPrice,
+    required this.productId,
+    required this.productType,
   });
 
   @override
-  State<PaymentPage> createState() => _PaymentPageState();
+  ConsumerState<PaymentPage> createState() => _PaymentPageState();
 }
 
-class _PaymentPageState extends State<PaymentPage> {
+class _PaymentPageState extends ConsumerState<PaymentPage> {
 
   String selectedMethod = "Net Banking";
   String paymentMethod = "UPI";
+  bool isProcessing = false;
+
+  Future<void> _handlePayment() async {
+    if (isProcessing) return;
+    
+    setState(() {
+      isProcessing = true;
+    });
+
+    try {
+      // Call enrollment API
+      final success = await ref.read(programOverviewProvider.notifier).enrollProgram(widget.programId,widget.productId,widget.productType);
+      
+      if (success && mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful! Program enrolled.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        // Fetch program data and navigate to dashboard
+        await ref.read(programOverviewProvider.notifier).fetchProgram(widget.programId,widget.productType);
+        if (mounted) {
+          context.go('/menteedashboard');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,8 +209,10 @@ class _PaymentPageState extends State<PaymentPage> {
                         backgroundColor: const Color(0xFF1A237E),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      onPressed: () {},
-                      child: Text("Proceed to Pay ₹${(double.parse(widget.programPrice.replaceAll('₹', '').replaceAll(',', '')) * 1.18).toStringAsFixed(2)}", style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                      onPressed: isProcessing ? null : _handlePayment,
+                      child: isProcessing 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text("Proceed to Pay ₹${(double.parse(widget.programPrice.replaceAll('₹', '').replaceAll(',', '')) * 1.18).toStringAsFixed(2)}", style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),

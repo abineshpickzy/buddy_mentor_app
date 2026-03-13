@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/learning_map_models.dart';
 import '../painter/learning_map_painter.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../program/chapter_sessions/screens/chapter_session_screen.dart';
 
 class LearningMapWidget extends StatefulWidget {
   final Subject subject;
@@ -274,7 +276,20 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
       debugPrint(
         '\n🟢 Chapter Tapped!'
         '\n   📚 Module  : ${module.moduleName}'
-        '\n   📖 Chapter : ${chapter.title}\n',
+        '\n   📖 Chapter : ${chapter.title}\n'
+        '\n   📘 ID      : ${chapter.id}\n'
+        
+      );
+      
+      // Navigate to chapter sessions with chapter data
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChapterSessions(
+            chapterId: chapter.id,
+            chapterName: chapter.title,
+          ),
+        ),
       );
       return;
     }

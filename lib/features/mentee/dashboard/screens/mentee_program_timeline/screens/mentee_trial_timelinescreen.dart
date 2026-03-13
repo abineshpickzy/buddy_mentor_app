@@ -1,13 +1,13 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
+import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/models/timeline_model.dart';
-import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class MenteeTimelineScreen extends ConsumerWidget {
-  const MenteeTimelineScreen({super.key});
+class MenteeTrialTimelineScreen extends ConsumerWidget {
+  const MenteeTrialTimelineScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -365,7 +365,7 @@ class MenteeTimelineScreen extends ConsumerWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildCard(context, item),
+                  child: _buildCard(context, item, null),
                 ),
               ),
             ],
