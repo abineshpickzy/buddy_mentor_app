@@ -14,13 +14,20 @@ class SessionAssetService {
   }) async {
     try {
       final response = await _dio.get('prgm/$programType/$sessionId/ast');
-      
+
       if (response.statusCode == 200) {
         return SessionContentResponse.fromJson(
             response.data as Map<String, dynamic>);
       }
-      
-      throw Exception('Failed to fetch session content: ${response.statusCode}');
+
+      throw Exception(
+          'Failed to fetch session content: ${response.statusCode}');
+    } on DioException catch (e) {
+      // ✅ 404 = "Content not found" — return empty, no retry triggered
+      if (e.response?.statusCode == 404) {
+        return SessionContentResponse.empty();
+      }
+      rethrow;
     } catch (e) {
       throw Exception('Failed to fetch session content: $e');
     }

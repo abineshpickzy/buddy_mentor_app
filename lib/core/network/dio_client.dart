@@ -11,7 +11,7 @@ class DioClient {
   static void initialize() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: "http://192.168.86.5:4001/user/",
+        baseUrl: "https://userdevapi.buddymentor.ai/user/",
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
       ),
@@ -64,7 +64,7 @@ class AuthInterceptor extends Interceptor {
       if (refreshToken != null) {
         try {
           final refreshResponse = await Dio().post(
-            'http://192.168.86.5:4001/user/auth/refresh-token',
+            'https://userdevapi.buddymentor.ai/user/auth/refresh-token',
             data: {'refresh_token': refreshToken},
           );
           

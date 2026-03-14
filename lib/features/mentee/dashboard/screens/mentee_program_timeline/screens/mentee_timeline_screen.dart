@@ -175,21 +175,9 @@ class MenteeTimelineScreen extends ConsumerWidget {
           ),
         );
         } : () {
-            // Navigate to first chapter of this module
-            if (module != null && module.chapters.isNotEmpty) {
-              final firstChapter = module.chapters[0];
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChapterSessions(
-                    chapterId: firstChapter.id,
-                    chapterName: firstChapter.name,
-                  ),
-                ),
-              );
-            } else {
+           
               context.push('/menteemap');
-            }
+            
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

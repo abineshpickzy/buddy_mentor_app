@@ -73,5 +73,11 @@
 	</array>
 	<key>AVAudioSessionCategory</key>
 	<string>AVAudioSessionCategoryPlayback</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>BuddyMentor needs access to save downloaded files.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>BuddyMentor needs access to save images to your library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BuddyMentor needs access to your photo library.</string>
 </dict>
 </plist>

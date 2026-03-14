@@ -23,68 +23,99 @@ class MenteeMapScreen extends ConsumerWidget {
       ),
       body: programOverviewAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildFallbackBody(mapSize),
+        error: (error, stack) => _buildBody(mapSize, sampleSubject, null),
         data: (programOverview) {
           if (programOverview == null) {
-            return _buildFallbackBody(mapSize);
+            return _buildBody(mapSize, sampleSubject, null);
           }
-
           final subject = ProgramOverviewConverter.convertToSubject(programOverview);
-          
-          return _buildMapBody(mapSize, subject);
+          return _buildBody(mapSize, subject, programOverview);
         },
       ),
     );
   }
 
-  Widget _buildMapBody(double mapSize, subject) {
+  Widget _buildBody(double mapSize, dynamic subject, dynamic programOverview) {
     return Column(
       children: [
-        Expanded(
-          child: Center(
-            child: LearningMapWidget(
-              canvasSize: mapSize,
-              subject: subject,
-            ),
+        // ── Legend at top ──────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              _LegendItem(color: Color(0xFF3CB371), label: "Complete"),
+              _LegendItem(color: Color(0xFF3A5BA0), label: "In Progress"),
+              _LegendItem(color: Color(0xFFD4A72C), label: "Pending"),
+              _LegendItem(color: Color(0xFFD3D6DB), label: "Locked"),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            _LegendItem(color: Color(0xFF3CB371), label: "Complete"),
-            _LegendItem(color: Color(0xFF3A5BA0), label: "In Progress"),
-            _LegendItem(color: Color(0xFFD4A72C), label: "Pending"),
-            _LegendItem(color: Color(0xFFD3D6DB), label: "Locked"),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
 
-  Widget _buildFallbackBody(double mapSize) {
-    return Column(
-      children: [
+        // ── Circle map ─────────────────────────────────────────
         Expanded(
           child: Center(
-            child: LearningMapWidget(
-              canvasSize: mapSize,
-              subject: sampleSubject,
+            child: Transform.scale(
+              scale: 1.15,
+              child: LearningMapWidget(
+                canvasSize: mapSize,
+                subject: subject,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            _LegendItem(color: Color(0xFF3CB371), label: "Complete"),
-            _LegendItem(color: Color(0xFF3A5BA0), label: "In Progress"),
-            _LegendItem(color: Color(0xFFD4A72C), label: "Pending"),
-            _LegendItem(color: Color(0xFFD3D6DB), label: "Locked"),
-          ],
+
+        // ── Bottom info card ───────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject?.subject ?? "Select a module",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A2E),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Tap to explore subtopics in this domain",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    color: Colors.grey.shade400, size: 22),
+              ],
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }

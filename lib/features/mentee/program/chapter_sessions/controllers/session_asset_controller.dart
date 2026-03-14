@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/session_asset_model.dart';
 import '../service/session_asset_service.dart';
 
-
 // Export the models for easier access
 export '../models/session_asset_model.dart';
 
@@ -14,14 +13,17 @@ final sessionAssetServiceProvider = Provider<SessionAssetService>((ref) {
 });
 
 // Session Content FutureProvider with family
-final sessionContentProvider = FutureProvider.family<SessionContentResponse, String>((ref, sessionId) async {
-  // Get program overview to extract program type
-  final programOverview = await ref.watch(programOverviewProvider.future);
-  
+final sessionContentProvider =
+    FutureProvider.family<SessionContentResponse, String>(
+        (ref, sessionId) async {
+  // ✅ Use ref.read instead of ref.watch to avoid re-running on every change
+  final programOverview = await ref.read(programOverviewProvider.future);
+
   if (programOverview == null) {
-    throw Exception('Program overview not available');
+    // ✅ Return empty instead of throwing — prevents retry loop
+    return SessionContentResponse.empty();
   }
-  
+
   final service = ref.read(sessionAssetServiceProvider);
   return service.fetchSessionContent(
     programType: programOverview.program.type,

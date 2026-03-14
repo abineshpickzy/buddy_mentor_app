@@ -94,7 +94,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       String dashboardRoute;
       switch (role.toLowerCase()) {
         case "mentee":
-          dashboardRoute = '/menteedashboard';
+          dashboardRoute = '/programlist';
           break;
         case "mentor":
           dashboardRoute = '/mentordashboard';

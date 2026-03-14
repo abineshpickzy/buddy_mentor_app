@@ -181,9 +181,50 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         return asyncData.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => _buildErrorState(err.toString()),
-          data: (data) => _buildSessionContent(data),
+          data: (data) {
+            // Show friendly empty state if no content found (404 case)
+            if (data.videoAsset == null && data.downloadableAssets.isEmpty) {
+              return _buildEmptyState();
+            }
+            return _buildSessionContent(data);
+          },
         );
       },
+    );
+  }
+
+  // ✅ New empty state widget shown when API returns 404 / no content
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.folder_open_outlined,
+                size: 56, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No content available',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Content for this session hasn\'t been added yet.\nCheck back later.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade400,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -197,10 +238,12 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         const SizedBox(height: 20),
         _buildSessionHeader(),
         const SizedBox(height: 18),
-        // ← Clean: just pass video, WebView handles everything internally
         SessionVideoPlayer(video: video),
         const SizedBox(height: 22),
-        SessionDownloadables(downloads: downloads),
+        SessionDownloadables(
+        downloads: downloads,
+        nodeId: _controller.currentSessionId, 
+),
         const SizedBox(height: 20),
         _buildDescription(),
         const SizedBox(height: 100),

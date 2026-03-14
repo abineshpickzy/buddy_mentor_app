@@ -22,8 +22,6 @@ class LearningMapPainter extends CustomPainter {
   static const double _expandedSweepBonus  = 0.55;
   static const double _centerExpandScale   = 1.15;
 
-  // 2px padding so at peak expansion (×1.2) the ring stays inside canvas:
-  // safeOuter × 1.2 = maxRadius − 2  ✓
   static const double _padding = 2.0;
 
   double _safeOuter(double maxRadius) =>
@@ -74,7 +72,8 @@ class LearningMapPainter extends CustomPainter {
     }
 
     List<double> startAngles = List.filled(n, 0);
-    startAngles[0] = gap / 2;
+    // Start from 12 o'clock (-pi/2)
+    startAngles[0] = -pi / 2 + gap / 2;
     for (int i = 1; i < n; i++) {
       startAngles[i] = startAngles[i - 1] + sweeps[i - 1] + gap;
     }
@@ -140,7 +139,7 @@ class LearningMapPainter extends CustomPainter {
         );
       }
 
-      // MODULE text
+      // MODULE text — maxLines 3 with padding when selected
       _drawRotatedText(
         canvas: canvas,
         text: module.moduleName,
@@ -152,7 +151,11 @@ class LearningMapPainter extends CustomPainter {
                 : 9.0 - expandProgress * 2.0)
             .clamp(5.0, 14.0),
         opacity: opacity,
+        // ✅ Extra padding when selected so text doesn't touch arc edges
         maxWidth: isSelected ? 90 : 60,
+        horizontalPadding: isSelected ? 10.0 : 6.0,
+        // ✅ Allow up to 3 lines when selected, 1 line otherwise
+        maxLines: isSelected ? 3 : 1,
         isSelected: isSelected,
         expandProgress: expandProgress,
       );
@@ -195,6 +198,8 @@ class LearningMapPainter extends CustomPainter {
                 .clamp(4.0, 12.0),
             opacity: isSelected ? _o(expandProgress) : chOpacity,
             maxWidth: isSelected ? 65 + expandProgress * 20 : 50,
+            horizontalPadding: 6.0,
+            maxLines: 1,
             isChapter: true,
           );
         }
@@ -207,7 +212,7 @@ class LearningMapPainter extends CustomPainter {
     canvas.drawCircle(center.translate(2, 2), centerRadius, shadowPaint);
 
     paint.shader = RadialGradient(
-      colors: [Colors.grey.shade50, Colors.grey.shade200],
+      colors: [AppColors.primaryDark, AppColors.primary],
     ).createShader(Rect.fromCircle(center: center, radius: centerRadius));
     canvas.drawCircle(center, centerRadius, paint);
 
@@ -217,22 +222,22 @@ class LearningMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = Colors.grey.shade500,
+        ..color = AppColors.border,
     );
 
     final subjectPainter = TextPainter(
       text: TextSpan(
         text: subject.subject,
         style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-          color: AppColors.textDark,
-          letterSpacing: 0.5,
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+          color: AppColors.white,
+          letterSpacing: 0,
         ),
       ),
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
-      maxLines: 3,
+      maxLines: 2,
       ellipsis: '…',
     );
     subjectPainter.layout(maxWidth: centerRadius * 1.5);
@@ -245,12 +250,12 @@ class LearningMapPainter extends CustomPainter {
   double _o(double v) => v.clamp(0.0, 1.0);
 
   Color _getStatusColor(int status, bool isLocked) {
-    if (isLocked) return const Color(0xFFD3D6DB); // Locked - Grey
+    if (isLocked) return const Color(0xFFD3D6DB);
     switch (status) {
-      case 2: return const Color(0xFF3CB371); // Complete - Green
-      case 1: return const Color(0xFF3A5BA0); // In Progress - Blue
-      case 0: return const Color(0xFFD4A72C); // Pending - Yellow
-      default: return const Color(0xFFD4A72C); // Default to Pending
+      case 2: return const Color(0xFF3CB371);
+      case 1: return AppColors.primaryDark;
+      case 0: return const Color(0xFFD4A72C);
+      default: return const Color(0xFFD4A72C);
     }
   }
 
@@ -288,6 +293,8 @@ class LearningMapPainter extends CustomPainter {
     required double fontSize,
     required double opacity,
     required double maxWidth,
+    double horizontalPadding = 6.0,   // ✅ configurable left/right padding
+    int maxLines = 1,                  // ✅ configurable max lines
     bool isChapter = false,
     bool isSelected = false,
     double expandProgress = 0.0,
@@ -304,15 +311,16 @@ class LearningMapPainter extends CustomPainter {
           color: Colors.white.withOpacity(_o(opacity)),
           fontWeight: FontWeight.w600,
           fontSize: fontSize,
-          letterSpacing: 0.3,
+          letterSpacing: 0,
+          height: 1.2,
         ),
       ),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
-      maxLines: 3,
-      ellipsis: '…',
+      maxLines: maxLines,
+      ellipsis: maxLines == 1 ? '…' : null,
     );
-    tp.layout(maxWidth: maxWidth);
+    tp.layout(maxWidth: maxWidth - horizontalPadding * 2);
 
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
@@ -327,7 +335,10 @@ class LearningMapPainter extends CustomPainter {
     }
 
     canvas.rotate(a);
-    tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+    tp.paint(
+      canvas,
+      Offset(-tp.width / 2, -tp.height / 2),
+    );
     canvas.restore();
   }
 

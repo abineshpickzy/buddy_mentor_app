@@ -60,10 +60,18 @@ class SessionContentResponse {
     );
   }
 
+  // ✅ Used when API returns 404 / no content found
+  factory SessionContentResponse.empty() {
+    return const SessionContentResponse(
+      success: false,
+      message: 'Content not found',
+      nodeId: '',
+      assets: [],
+    );
+  }
+
   SessionAsset? get videoAsset {
-    print('All assets: ${assets.map((a) => 'type: ${a.type}, cloudflareUid: ${a.cloudflareUid}').toList()}');
     final videos = assets.where((a) => a.isVideo).toList();
-    print('Video assets found: ${videos.length}');
     return videos.isNotEmpty ? videos.first : null;
   }
 
