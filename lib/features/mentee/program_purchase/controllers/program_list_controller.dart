@@ -12,15 +12,24 @@ final programListServiceProvider = Provider<ProgramListService>((ref) {
   return ProgramListService(DioClient.dio);
 });
 
-// Programs AsyncNotifier
+// Programs AsyncNotifier with controlled retry
 class ProgramsNotifier extends AsyncNotifier<List<Program>> {
+  bool _hasAttempted = false;
+  
   @override
   Future<List<Program>> build() async {
+    if (_hasAttempted && state.hasError) {
+      // Don't retry automatically if we already failed
+      throw state.error!;
+    }
+    
+    _hasAttempted = true;
     final service = ref.read(programListServiceProvider);
     return service.getPrograms();
   }
 
   Future<void> refresh() async {
+    _hasAttempted = false; // Reset attempt flag for manual refresh
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final service = ref.read(programListServiceProvider);
@@ -29,15 +38,24 @@ class ProgramsNotifier extends AsyncNotifier<List<Program>> {
   }
 }
 
-// Program Stats AsyncNotifier
+// Program Stats AsyncNotifier with controlled retry
 class ProgramStatsNotifier extends AsyncNotifier<ProgramStats> {
+  bool _hasAttempted = false;
+  
   @override
   Future<ProgramStats> build() async {
+    if (_hasAttempted && state.hasError) {
+      // Don't retry automatically if we already failed
+      throw state.error!;
+    }
+    
+    _hasAttempted = true;
     final service = ref.read(programListServiceProvider);
     return service.getProgramStats();
   }
 
   Future<void> refresh() async {
+    _hasAttempted = false; // Reset attempt flag for manual refresh
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final service = ref.read(programListServiceProvider);

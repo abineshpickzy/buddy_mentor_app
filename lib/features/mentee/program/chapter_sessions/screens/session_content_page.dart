@@ -231,19 +231,24 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   Widget _buildSessionContent(data) {
     final video = data.videoAsset;
     final downloads = data.downloadableAssets;
+    final hasVideo = video?.cloudflareUid != null && video!.cloudflareUid!.isNotEmpty;
 
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         const SizedBox(height: 20),
         _buildSessionHeader(),
-        const SizedBox(height: 18),
-        SessionVideoPlayer(video: video),
-        const SizedBox(height: 22),
+        if (hasVideo) ...[
+          const SizedBox(height: 18),
+          SessionVideoPlayer(video: video),
+          const SizedBox(height: 22),
+        ] else ...[
+          const SizedBox(height: 18),
+        ],
         SessionDownloadables(
-        downloads: downloads,
-        nodeId: _controller.currentSessionId, 
-),
+          downloads: downloads,
+          nodeId: _controller.currentSessionId, 
+        ),
         const SizedBox(height: 20),
         _buildDescription(),
         const SizedBox(height: 100),

@@ -3,12 +3,15 @@ import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:buddymentor/core/network/dio_client.dart';
 import 'package:buddymentor/features/auth/data/services/storage_service.dart';
 
 class SessionDownloadService {
+  static const _channel = MethodChannel('com.buddymentor/media_scanner');
+
   static Future<Dio> _buildDio() async {
     final dio = Dio(BaseOptions(
       baseUrl: DioClient.dio.options.baseUrl,
@@ -40,15 +43,31 @@ class SessionDownloadService {
     return Uint8List.fromList(response.data as List<int>);
   }
 
-  /// Saves bytes to phone's Downloads folder
+  /// Saves bytes to Downloads folder + shows system download notification
   static Future<String> saveToDownloads({
     required Uint8List bytes,
     required String fileName,
   }) async {
     final savePath = await _getSavePath(fileName);
     debugPrint('💾 Saving to: $savePath');
+
+    // Write file
     await File(savePath).writeAsBytes(bytes, flush: true);
     debugPrint('✅ Saved successfully');
+
+    // ✅ Notify via DownloadManager — shows system download notification
+    if (Platform.isAndroid) {
+      try {
+        await _channel.invokeMethod('saveFile', {
+          'path': savePath,
+          'fileName': fileName,
+        });
+        debugPrint('📢 Download notification shown');
+      } catch (e) {
+        debugPrint('⚠️ Notification failed: $e');
+      }
+    }
+
     return savePath;
   }
 
@@ -69,7 +88,7 @@ class SessionDownloadService {
           return _uniquePath(downloadsDir.path, fileName);
         }
       } else {
-        // ✅ Android 10 (SDK 29) AND below — need runtime permission
+        // Android 10 and below — need runtime permission
         final status = await Permission.storage.request();
         debugPrint('📂 Storage permission: $status');
 
@@ -80,13 +99,12 @@ class SessionDownloadService {
           return _uniquePath(downloadPath, fileName);
         } else if (status.isPermanentlyDenied) {
           await openAppSettings();
-          throw Exception('Storage permission permanently denied. Please enable it in Settings.');
+          throw Exception('Storage permission permanently denied. Please enable in Settings.');
         } else {
           throw Exception('Storage permission denied.');
         }
       }
 
-      // Fallback
       final appDir = await getApplicationDocumentsDirectory();
       return _uniquePath(appDir.path, fileName);
     } else {

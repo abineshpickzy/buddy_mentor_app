@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:buddymentor/shared/utils/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,7 +29,6 @@ class AssetPreviewSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      // ✅ useRootNavigator avoids render context issues on Android 10
       useRootNavigator: true,
       builder: (_) => AssetPreviewSheet(
         asset: asset,
@@ -42,7 +42,8 @@ class AssetPreviewSheet extends StatefulWidget {
   State<AssetPreviewSheet> createState() => _AssetPreviewSheetState();
 }
 
-class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
+class _AssetPreviewSheetState extends State<AssetPreviewSheet>
+    with WidgetsBindingObserver {
   Uint8List? _bytes;
   String?    _pdfPath;
   bool       _loading     = true;
@@ -50,15 +51,37 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
   bool       _downloaded  = false;
   String?    _error;
 
-  // PDF controller state
-  int  _totalPages   = 0;
-  int  _currentPage  = 0;
-  bool _pdfReady     = false;
+  int  _totalPages  = 0;
+  int  _currentPage = 0;
+  bool _pdfReady    = false;
+  bool _showPdf     = true;
+
+  PDFViewController? _pdfController;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadPreview();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.asset.type != 'pdf') return;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      if (mounted) setState(() => _showPdf = false);
+    } else if (state == AppLifecycleState.resumed) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) setState(() => _showPdf = true);
+      });
+    }
   }
 
   Future<void> _loadPreview() async {
@@ -71,13 +94,12 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
 
       if (widget.asset.type == 'pdf') {
         final tmp  = await getTemporaryDirectory();
-        // ✅ Use unique name to avoid cached corrupt file
         final file = File('${tmp.path}/preview_${widget.asset.id}.pdf');
         await file.writeAsBytes(bytes, flush: true);
         if (mounted) {
           setState(() {
             _pdfPath = file.path;
-            _bytes   = bytes; // keep bytes for download
+            _bytes   = bytes;
             _loading = false;
           });
         }
@@ -99,10 +121,12 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
       );
       if (mounted) {
         setState(() { _downloading = false; _downloaded = true; });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('✅ Saved to Downloads folder'),
-          behavior: SnackBarBehavior.floating,
-        ));
+        AppToast.show(
+          context, 
+          message: "File Saved Successfully!", 
+          type: ToastType.success,
+          highPriority: true,
+        );
       }
     } catch (e) {
       debugPrint('❌ Download error: $e');
@@ -165,7 +189,6 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                // PDF page counter
                 if (widget.asset.type == 'pdf' && _pdfReady)
                   Text(
                     'Page ${_currentPage + 1} of $_totalPages',
@@ -175,6 +198,18 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
             ),
           ),
           const SizedBox(width: 8),
+          // Previous page button for PDF
+          if (widget.asset.type == 'pdf' && _pdfReady && _currentPage > 0)
+            IconButton(
+              icon: const Icon(Icons.arrow_upward, color: Colors.white54, size: 20),
+              onPressed: () => _pdfController?.setPage(_currentPage - 1),
+            ),
+          // Next page button for PDF
+          if (widget.asset.type == 'pdf' && _pdfReady && _currentPage < _totalPages - 1)
+            IconButton(
+              icon: const Icon(Icons.arrow_downward, color: Colors.white54, size: 20),
+              onPressed: () => _pdfController?.setPage(_currentPage + 1),
+            ),
           _buildDownloadButton(),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white70),
@@ -264,20 +299,44 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
 
     // ── PDF preview ────────────────────────────────────────────
     if (widget.asset.type == 'pdf' && _pdfPath != null) {
+      if (!_showPdf) {
+        return const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.white54),
+              SizedBox(height: 12),
+              Text('Resuming…',
+                  style: TextStyle(color: Colors.white54, fontSize: 13)),
+            ],
+          ),
+        );
+      }
+
       return PDFView(
+        key: ValueKey('pdf_$_showPdf'),
         filePath: _pdfPath!,
-        enableSwipe: true,
-        swipeHorizontal: false,
-        autoSpacing: true,
-        pageFling: false,        // ✅ false fixes crash on Android 10
-        pageSnap: false,         // ✅ false fixes crash on Android 10
-        fitEachPage: true,
+        enableSwipe: true,         // ✅ vertical swipe to scroll pages
+        swipeHorizontal: false,    // ✅ vertical scroll like a document
+        autoSpacing: true,         // ✅ space between pages
+        pageFling: false,          // ✅ false = continuous scroll, not snap
+        pageSnap: false,           // ✅ false = continuous scroll
+        fitEachPage: false,        // ✅ false = shows full page width, scrollable
+        fitPolicy: FitPolicy.WIDTH, // ✅ fit to width so full content is visible
         backgroundColor: const Color(0xFF1A1A2E),
+        onViewCreated: (controller) {
+          _pdfController = controller;
+        },
         onRender: (pages) {
-          if (mounted) setState(() { _totalPages = pages ?? 0; _pdfReady = true; });
+          if (mounted) {
+            setState(() {
+              _totalPages = pages ?? 0;
+              _pdfReady   = true;
+            });
+          }
         },
         onPageChanged: (page, total) {
-          if (mounted) setState(() { _currentPage = page ?? 0; });
+          if (mounted) setState(() => _currentPage = page ?? 0);
         },
         onError: (error) {
           debugPrint('❌ PDFView error: $error');
@@ -286,7 +345,7 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
       );
     }
 
-    // ── Word doc — no inline preview ──────────────────────────
+    // ── Word doc ───────────────────────────────────────────────
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -307,7 +366,6 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
               style: TextStyle(color: Colors.white38, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 24),
-            // ✅ Direct download button for docx since no preview
             ElevatedButton.icon(
               onPressed: (_bytes == null || _downloading) ? null : _download,
               icon: const Icon(Icons.download_outlined),

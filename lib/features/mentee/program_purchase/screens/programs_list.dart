@@ -1,9 +1,12 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
+import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
+import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../controllers/program_list_controller.dart';
 import '../controllers/program_overview_controller.dart';
+
 import 'payment_page.dart';
 
 class ProgramList extends ConsumerWidget {
@@ -49,7 +52,10 @@ class ProgramList extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.menu_open, color: Color(0xFF5C6280), size: 24),
+            GestureDetector(
+              onTap: () => _showProfileSidebar(context),
+              child: const Icon(Icons.menu_open, color: Color(0xFF5C6280), size: 24),
+            ),
             const SizedBox(width: 20),
             Text(
               "Programs",
@@ -60,13 +66,16 @@ class ProgramList extends ConsumerWidget {
               ),
             ),
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8EAF6), // Light blue circle background
-                shape: BoxShape.circle,
+            GestureDetector(
+              onTap: () => _showProfilePopup(context, ref),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8EAF6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_outline, color: Color(0xFF5C6280), size: 20),
               ),
-              child: const Icon(Icons.person_outline, color: Color(0xFF5C6280), size: 20),
             ),
           ],
         ),
@@ -154,10 +163,23 @@ class ProgramList extends ConsumerWidget {
                   children: [
                     const Icon(Icons.error_outline, size: 48, color: Colors.red),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text(
+                      'Failed to load programs',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please check your connection and try again',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.read(programsProvider.notifier).refresh(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -167,6 +189,119 @@ class ProgramList extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showProfileSidebar(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(-1.0, 0.0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            )),
+            child: const ProfileSidebar(),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showProfilePopup(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+    final userData = authState.fullUserData;
+    final fullName = "${userData?["first_name"] ?? ""} ${userData?["last_name"] ?? "User"}".trim();
+    final email = userData?["email"]?["id"] ?? "user@example.com";
+
+    showMenu(
+      context: context,
+      position: const RelativeRect.fromLTRB(1000, 120, 16, 0),
+      color: Colors.white,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      items: [
+        PopupMenuItem(
+          enabled: false,
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: Icon(Icons.person, size: 16, color: AppColors.primary),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fullName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            email,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Divider(height: 1),
+              ],
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          child: Row(
+            children: [
+              Icon(Icons.logout, size: 16, color: Colors.red.shade600),
+              const SizedBox(width: 8),
+              Text(
+                'Sign Out',
+                style: TextStyle(
+                  color: Colors.red.shade600,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          onTap: () async {
+            await ref.read(authControllerProvider.notifier).logout();
+            if (context.mounted) context.go('/role');
+          },
+        ),
+      ],
     );
   }
 }

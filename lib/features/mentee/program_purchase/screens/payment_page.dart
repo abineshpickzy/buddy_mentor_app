@@ -143,11 +143,11 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
               title: "Order Summary",
               child: Column(
                 children: [
-                  _summaryRow(widget.programTitle, widget.programPrice),
+                  _summaryRow(widget.programTitle, "₹ 12000.00"),
                   const Divider(),
-                  _summaryRow("GST (18%)", "₹${(double.parse(widget.programPrice.replaceAll('₹', '').replaceAll(',', '')) * 0.18).toStringAsFixed(2)}"),
+                  _summaryRow("GST (18%)", "₹ 0.00"),
                   const Divider(),
-                  _summaryRow("Total", "₹${(double.parse(widget.programPrice.replaceAll('₹', '').replaceAll(',', '')) * 1.18).toStringAsFixed(2)}", isBold: true),
+                  _summaryRow("Total", "₹ 12000.00", isBold: true),
                 ],
               ),
             ),
@@ -212,7 +212,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                       onPressed: isProcessing ? null : _handlePayment,
                       child: isProcessing 
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : Text("Proceed to Pay ₹${(double.parse(widget.programPrice.replaceAll('₹', '').replaceAll(',', '')) * 1.18).toStringAsFixed(2)}", style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                        : Text("Proceed to Pay ₹ 12000.00", style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),

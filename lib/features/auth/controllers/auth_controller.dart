@@ -80,6 +80,7 @@ class AuthController extends Notifier<AuthState> {
       }
     } catch (e) {
       print('Error fetching full user data: $e');
+      // Don't retry automatically, just log the error
     }
   }
 
