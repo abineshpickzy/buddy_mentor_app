@@ -1,3 +1,4 @@
+import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/mentee/program/chapter_sessions/widgets/asset_preview_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,7 +60,6 @@ class SessionDownloadables extends ConsumerWidget {
                 ],
               ),
             ),
-            Divider(height: 1, color: Colors.grey.shade200),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
               child: Column(
@@ -80,36 +80,33 @@ class SessionDownloadables extends ConsumerWidget {
     switch (asset.type) {
       case 'image':
         fileIcon  = Icons.image_outlined;
-        iconColor = Colors.blue.shade400;
+        iconColor =AppColors.primary ;
         break;
       case 'pdf':
         fileIcon  = Icons.picture_as_pdf_outlined;
-        iconColor = Colors.red.shade400;
+        iconColor = AppColors.primary;
         break;
       case 'docx':
       case 'doc':
         fileIcon  = Icons.description_outlined;
-        iconColor = Colors.blue.shade700;
+        iconColor = AppColors.primary;
         break;
       default:
         fileIcon  = Icons.insert_drive_file_outlined;
-        iconColor = Colors.grey.shade600;
+        iconColor = AppColors.primary;
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10 ,horizontal: 10),
+        decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border),
+      ),
       child: Row(
         children: [
-          // File type icon
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(fileIcon, color: iconColor, size: 18),
-          ),
+         
+        Icon(fileIcon, color: iconColor, size: 18),
+        
           const SizedBox(width: 12),
 
           // File name
@@ -136,12 +133,9 @@ class SessionDownloadables extends ConsumerWidget {
               nodeId: nodeId,
             ),
             child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2D4383).withOpacity(0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
+              width: 20,
+              height: 20,
+             
               child: const Icon(Icons.remove_red_eye_outlined,
                   color: Color(0xFF2D4383), size: 18),
             ),

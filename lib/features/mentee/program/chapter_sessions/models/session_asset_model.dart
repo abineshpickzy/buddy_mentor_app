@@ -8,6 +8,7 @@ class SessionAsset {
   final int reviewStatus;
   final String? cloudflareUid; // only for videos
   final int status;
+  final bool isDownloadable;
 
   const SessionAsset({
     required this.id,
@@ -17,6 +18,7 @@ class SessionAsset {
     required this.reviewStatus,
     this.cloudflareUid,
     required this.status,
+    required this.isDownloadable,
   });
 
   factory SessionAsset.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class SessionAsset {
       reviewStatus: json['review_status'] as int,
       cloudflareUid: json['cloudflare_uid'] as String?,
       status: json['status'] as int,
+      isDownloadable: json['is_downloadable'] as bool? ?? false,
     );
   }
 
@@ -76,5 +79,5 @@ class SessionContentResponse {
   }
 
   List<SessionAsset> get downloadableAssets =>
-      assets.where((a) => !a.isVideo).toList();
+      assets.where((a) => !a.isVideo && a.isDownloadable).toList();
 }

@@ -59,6 +59,7 @@ class ChapterSessions extends ConsumerWidget {
             chapterName: chapterName,
             sessionId: tapped['id'] as String,
             sessionName: tapped['title'] as String,
+            // menteeEngagement:tapped['engagement'],
             initialTabIndex: sectionIndex,
           ),
         ),

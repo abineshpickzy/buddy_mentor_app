@@ -1,7 +1,9 @@
+import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/mentee/program/chapter_sessions/widgets/shimmers/session_content_skeleton.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../controllers/session_asset_controller.dart';
 import '../controllers/session_content_controller.dart';
 import '../widgets/session_progress_bar.dart';
@@ -9,6 +11,7 @@ import '../widgets/session_tab_bar.dart';
 import '../widgets/session_video_player.dart';
 import '../widgets/session_downloadables.dart';
 import '../widgets/mark_complete_button.dart';
+import '../widgets/menteeEngagement/mentee_engagement_section.dart';
 
 class SessionContentPage extends ConsumerStatefulWidget {
   final String chapterId;
@@ -43,7 +46,6 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       sessionName: widget.sessionName,
       vsync: this,
     );
-    // NOTE: listener is attached inside initializeTabController on each rebuild
   }
 
   @override
@@ -71,11 +73,9 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   }
 
   void _onMarkCompleteSuccess() {
-    // Read fresh sessions from the already-updated local provider state
     final updatedOverview = ref.read(programOverviewProvider).value;
     if (updatedOverview == null) return;
 
-    // Get fresh sessions list from updated state
     List<dynamic> freshSessions = [];
     for (final module in updatedOverview.hierarchy.modules) {
       for (final chapter in module.chapters) {
@@ -89,17 +89,13 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
 
     if (freshSessions.isEmpty) return;
 
-    // Find current session index in fresh list
     final currentIndex = freshSessions
         .indexWhere((s) => s.id == _controller.currentSessionId);
-
     if (currentIndex == -1) return;
 
     final nextIndex = currentIndex + 1;
-
     if (nextIndex < freshSessions.length) {
       final nextSession = freshSessions[nextIndex];
-      // No isLocked check — notifier already unlocked it in local state
       _controller.switchToSession(nextSession);
       _controller.tabController.animateTo(nextIndex);
       setState(() {});
@@ -109,7 +105,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FA),
+      backgroundColor: AppColors.white,
       appBar: _buildAppBar(),
       body: _buildBody(),
       bottomNavigationBar: MarkCompleteButton(
@@ -134,7 +130,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         children: [
           Text(
             _controller.currentSessionName,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 12,
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w400,
@@ -142,19 +138,15 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
           ),
           Text(
             widget.chapterName,
-            style: const TextStyle(
-              fontSize: 15,
+            style: GoogleFonts.inter(
+              fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E),
+              color: const Color(0xFF1A1A2E),
             ),
           ),
         ],
       ),
       centerTitle: false,
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Divider(height: 1, color: Colors.grey.shade200),
-      ),
     );
   }
 
@@ -176,7 +168,6 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
               return const Center(child: Text('No sessions found'));
             }
 
-            // Re-attach listener each time tab controller is (re)initialized
             _controller.initializeTabController(
               chapterSessions,
               this,
@@ -225,48 +216,9 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         return asyncData.when(
           loading: () => const SessionPageSkeleton(),
           error: (err, _) => _buildErrorState(err.toString()),
-          data: (data) {
-            if (data.videoAsset == null && data.downloadableAssets.isEmpty) {
-              return _buildEmptyState();
-            }
-            return _buildSessionContent(data);
-          },
+          data: (data) => _buildSessionContent(data),
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.folder_open_outlined,
-                size: 56, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              'No content available',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Content for this session hasn\'t been added yet.\nCheck back later.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade400,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -275,6 +227,9 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
     final downloads = data.downloadableAssets;
     final hasVideo =
         video?.cloudflareUid != null && video!.cloudflareUid!.isNotEmpty;
+    final hasDownloads = downloads.isNotEmpty;
+    final currentSession = _getCurrentSession();
+    final showEngagementUI = currentSession?.menteeEngagement == true;
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -288,12 +243,21 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         ] else ...[
           const SizedBox(height: 18),
         ],
-        SessionDownloadables(
-          downloads: downloads,
-          nodeId: _controller.currentSessionId,
-        ),
-        const SizedBox(height: 20),
+        if (hasDownloads) ...[
+          SessionDownloadables(
+            downloads: downloads,
+            nodeId: _controller.currentSessionId,
+          ),
+          const SizedBox(height: 20),
+        ],
         _buildDescription(),
+        if (showEngagementUI) ...[
+          const SizedBox(height: 24),
+          // ← Clean single line, all logic lives in its own file
+          MenteeEngagementSection(
+            sessionId: _controller.currentSessionId,
+          ),
+        ],
         const SizedBox(height: 100),
       ],
     );
@@ -307,11 +271,11 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         children: [
           Text(
             _controller.currentSessionName,
-            style: const TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E),
-              letterSpacing: -0.2,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+              letterSpacing: 0,
             ),
           ),
           const SizedBox(height: 6),
@@ -329,18 +293,26 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   }
 
   Widget _buildDescription() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border : Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(8),
+      ),  
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+           Text(
             'Description',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E),
-            ),
+            textAlign: TextAlign.justify,
+            style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                  letterSpacing: 0.1,
+              
+                ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -386,5 +358,12 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       }
     }
     return [];
+  }
+
+  Session? _getCurrentSession() {
+    return _controller.chapterSessions
+        .cast<Session>()
+        .where((session) => session.id == _controller.currentSessionId)
+        .firstOrNull;
   }
 }

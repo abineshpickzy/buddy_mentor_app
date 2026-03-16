@@ -7,7 +7,7 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.background,
     primaryColor: AppColors.primary,
-    fontFamily: GoogleFonts.inter().fontFamily, // Set Inter as default font
+    fontFamily: GoogleFonts.inter().fontFamily,
 
     textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
       headlineMedium: GoogleFonts.inter(
@@ -24,6 +24,17 @@ class AppTheme {
         fontSize: 14, 
         color: AppColors.textLight,
       ),
+      // Add more font weight variants
+      titleMedium: GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textDark,
+      ),
+      titleSmall: GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textDark,
+      ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
@@ -35,4 +46,14 @@ class AppTheme {
       ),
     ),
   );
+  
+  // Method to preload font weights
+  static Future<void> preloadFonts() async {
+    await GoogleFonts.pendingFonts([
+      GoogleFonts.inter(fontWeight: FontWeight.w400), // Regular
+      GoogleFonts.inter(fontWeight: FontWeight.w500), // Medium
+      GoogleFonts.inter(fontWeight: FontWeight.w600), // SemiBold
+      GoogleFonts.inter(fontWeight: FontWeight.w700), // Bold
+    ]);
+  }
 }

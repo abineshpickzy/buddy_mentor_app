@@ -47,35 +47,32 @@ class SessionTabBar extends StatelessWidget {
           final isSelected = tabController.index == i;
           final isLocked = session.isLocked;
 
+          // Dot color: white when selected, colored when not
           Color dotColor;
-          if (isSelected) {
-            dotColor = Colors.white;
-          } else {
-            final colors = [
-              Colors.amber.shade400,
-              Colors.blue.shade400,
-              Colors.green.shade400,
-              Colors.pink.shade400,
-              Colors.purple.shade400,
-            ];
-            dotColor = colors[i % colors.length];
+         if(isLocked) {
+            dotColor = Colors.grey;
+          }
+          else if(session.status==2){
+            dotColor=Colors.green;
+          }
+          else{
+            dotColor=Colors.yellow;
           }
 
           return Tab(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: EdgeInsets.symmetric(
+                // Selected pill gets slightly more horizontal padding
+                horizontal: isSelected ? 16 : 12,
+                vertical: 7,
+              ),
               decoration: BoxDecoration(
+                // Selected: filled navy pill. Unselected: no bg, no border
                 color: isSelected
-                    ? const Color(0xFF2D4383)
+                    ? const Color(0xFF2564d7)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF2D4383)
-                      : Colors.grey.shade300,
-                  width: 1,
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -84,28 +81,33 @@ class SessionTabBar extends StatelessWidget {
                     Icon(
                       Icons.lock_outline,
                       size: 12,
-                      color: isSelected ? Colors.white : Colors.grey.shade600,
+                      color: isSelected ? Colors.white : Colors.grey.shade500,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 5),
                   ] else ...[
                     Container(
-                      width: 7,
-                      height: 7,
+                      width: 8,
+                      height: 8,
                       decoration: BoxDecoration(
                         color: dotColor,
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 6),
                   ],
                   Text(
                     session.name,
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                      fontSize: 13,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.black87,
                     ),
                   ),
+                  
                 ],
               ),
             ),

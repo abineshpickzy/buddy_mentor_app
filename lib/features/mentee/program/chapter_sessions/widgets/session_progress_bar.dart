@@ -22,10 +22,10 @@ class SessionProgressBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: progress,
-                minHeight: 5,
+                minHeight: 6,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF2D4383),
+                  Color(0xFF2564d7),
                 ),
               ),
             ),
