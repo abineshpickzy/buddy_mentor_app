@@ -24,27 +24,37 @@ class SessionContentController {
     tabController.dispose();
   }
 
-  void initializeTabController(List<dynamic> sessions, TickerProvider vsync) {
-    if (chapterSessions.length == sessions.length && tabControllerInitialized) {
-      return;
-    }
-
-    chapterSessions = sessions;
-    final currentIndex = findCurrentSessionIndex(sessions);
-
-    if (tabControllerInitialized) {
-      tabController.dispose();
-    }
-
-    tabController = TabController(
-      length: sessions.length,
-      vsync: vsync,
-      initialIndex: currentIndex,
-    );
-
-    tabControllerInitialized = true;
+void initializeTabController(
+  List<dynamic> sessions,
+  TickerProvider vsync, {
+  VoidCallback? onTabChanged,
+}) {
+  if (chapterSessions.length == sessions.length && tabControllerInitialized) {
+    return;
   }
 
+  chapterSessions = sessions;
+  final currentIndex = findCurrentSessionIndex(sessions);
+
+  if (tabControllerInitialized) {
+    tabController.removeListener(onTabChanged ?? () {});
+    tabController.dispose();
+  }
+
+  tabController = TabController(
+    length: sessions.length,
+    vsync: vsync,
+    initialIndex: currentIndex,
+  );
+
+  // Re-attach listener on the new controller
+  if (onTabChanged != null) {
+    tabController.addListener(onTabChanged);
+  }
+
+  tabControllerInitialized = true;
+}
+ 
   int findCurrentSessionIndex(List<dynamic> sessions) {
     for (int i = 0; i < sessions.length; i++) {
       if (sessions[i].id == currentSessionId) return i;

@@ -1,3 +1,4 @@
+import 'package:buddymentor/features/mentee/program/chapter_sessions/widgets/shimmers/session_content_skeleton.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +43,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       sessionName: widget.sessionName,
       vsync: this,
     );
-    _controller.tabController.addListener(_onTabChanged);
+    // NOTE: listener is attached inside initializeTabController on each rebuild
   }
 
   @override
@@ -54,6 +55,11 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
 
   void _onTabChanged() {
     if (mounted && !_controller.tabController.indexIsChanging) {
+      final sessions = _controller.chapterSessions;
+      if (sessions.isNotEmpty) {
+        final newSession = sessions[_controller.tabController.index];
+        _controller.switchToSession(newSession);
+      }
       setState(() {});
     }
   }
@@ -64,6 +70,42 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
     setState(() {});
   }
 
+  void _onMarkCompleteSuccess() {
+    // Read fresh sessions from the already-updated local provider state
+    final updatedOverview = ref.read(programOverviewProvider).value;
+    if (updatedOverview == null) return;
+
+    // Get fresh sessions list from updated state
+    List<dynamic> freshSessions = [];
+    for (final module in updatedOverview.hierarchy.modules) {
+      for (final chapter in module.chapters) {
+        if (chapter.id == widget.chapterId) {
+          freshSessions = chapter.sessions;
+          break;
+        }
+      }
+      if (freshSessions.isNotEmpty) break;
+    }
+
+    if (freshSessions.isEmpty) return;
+
+    // Find current session index in fresh list
+    final currentIndex = freshSessions
+        .indexWhere((s) => s.id == _controller.currentSessionId);
+
+    if (currentIndex == -1) return;
+
+    final nextIndex = currentIndex + 1;
+
+    if (nextIndex < freshSessions.length) {
+      final nextSession = freshSessions[nextIndex];
+      // No isLocked check — notifier already unlocked it in local state
+      _controller.switchToSession(nextSession);
+      _controller.tabController.animateTo(nextIndex);
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,10 +114,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       body: _buildBody(),
       bottomNavigationBar: MarkCompleteButton(
         onMarkComplete: () => _controller.markSessionComplete(ref),
-        onSuccess: () {
-          _controller.switchToNextSession();
-          setState(() {});
-        },
+        onSuccess: _onMarkCompleteSuccess,
       ),
     );
   }
@@ -125,7 +164,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         final programOverviewAsync = ref.watch(programOverviewProvider);
 
         return programOverviewAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SessionPageSkeleton(),
           error: (err, _) => _buildErrorState(err.toString()),
           data: (programOverview) {
             if (programOverview == null) {
@@ -137,7 +176,12 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
               return const Center(child: Text('No sessions found'));
             }
 
-            _controller.initializeTabController(chapterSessions, this);
+            // Re-attach listener each time tab controller is (re)initialized
+            _controller.initializeTabController(
+              chapterSessions,
+              this,
+              onTabChanged: _onTabChanged,
+            );
 
             return Column(
               children: [
@@ -179,10 +223,9 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
             ref.watch(sessionContentProvider(_controller.currentSessionId));
 
         return asyncData.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SessionPageSkeleton(),
           error: (err, _) => _buildErrorState(err.toString()),
           data: (data) {
-            // Show friendly empty state if no content found (404 case)
             if (data.videoAsset == null && data.downloadableAssets.isEmpty) {
               return _buildEmptyState();
             }
@@ -193,7 +236,6 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
     );
   }
 
-  // ✅ New empty state widget shown when API returns 404 / no content
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -231,7 +273,8 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   Widget _buildSessionContent(data) {
     final video = data.videoAsset;
     final downloads = data.downloadableAssets;
-    final hasVideo = video?.cloudflareUid != null && video!.cloudflareUid!.isNotEmpty;
+    final hasVideo =
+        video?.cloudflareUid != null && video!.cloudflareUid!.isNotEmpty;
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -247,7 +290,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         ],
         SessionDownloadables(
           downloads: downloads,
-          nodeId: _controller.currentSessionId, 
+          nodeId: _controller.currentSessionId,
         ),
         const SizedBox(height: 20),
         _buildDescription(),

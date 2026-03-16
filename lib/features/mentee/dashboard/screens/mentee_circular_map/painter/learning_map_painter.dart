@@ -147,14 +147,12 @@ class LearningMapPainter extends CustomPainter {
         radius: (moduleInnerRadius + moduleOuterRadius) / 2,
         angle: startAngle + sweep / 2,
         fontSize: (isSelected
-                ? 9.0 + expandProgress * 3.0
+                ? 9.0 + expandProgress * 2.0
                 : 9.0 - expandProgress * 2.0)
             .clamp(5.0, 14.0),
         opacity: opacity,
-        // ✅ Extra padding when selected so text doesn't touch arc edges
         maxWidth: isSelected ? 90 : 60,
         horizontalPadding: isSelected ? 10.0 : 6.0,
-        // ✅ Allow up to 3 lines when selected, 1 line otherwise
         maxLines: isSelected ? 3 : 1,
         isSelected: isSelected,
         expandProgress: expandProgress,
@@ -188,19 +186,17 @@ class LearningMapPainter extends CustomPainter {
             (!hasSelection && bandWidth > 6);
 
         if (showText) {
-          _drawRotatedText(
+          _drawArcText(
             canvas: canvas,
             text: chapter.title,
             center: center,
             radius: (bandInner + bandOuter) / 2,
-            angle: startAngle + sweep / 2,
-            fontSize: (isSelected ? 7.0 + expandProgress * 3.0 : 7.0)
+            startAngle: startAngle,
+            sweepAngle: sweep,
+            fontSize: (isSelected ? 7.0 + expandProgress * 1.5 : 7.0)
                 .clamp(4.0, 12.0),
             opacity: isSelected ? _o(expandProgress) : chOpacity,
-            maxWidth: isSelected ? 65 + expandProgress * 20 : 50,
-            horizontalPadding: 6.0,
-            maxLines: 1,
-            isChapter: true,
+            horizontalPadding: isSelected ? 12.0 : 3.0,
           );
         }
       }
@@ -293,8 +289,8 @@ class LearningMapPainter extends CustomPainter {
     required double fontSize,
     required double opacity,
     required double maxWidth,
-    double horizontalPadding = 6.0,   // ✅ configurable left/right padding
-    int maxLines = 1,                  // ✅ configurable max lines
+    double horizontalPadding = 6.0,
+    int maxLines = 1,
     bool isChapter = false,
     bool isSelected = false,
     double expandProgress = 0.0,
@@ -342,6 +338,108 @@ class LearningMapPainter extends CustomPainter {
     canvas.restore();
   }
 
+void _drawArcText({
+  required Canvas canvas,
+  required String text,
+  required Offset center,
+  required double radius,
+  required double startAngle,
+  required double sweepAngle,
+  required double fontSize,
+  required double opacity,
+  double horizontalPadding = 6.0,
+}) {
+  final textStyle = TextStyle(
+    color: Colors.white.withOpacity(_o(opacity)),
+    fontSize: fontSize,
+    fontWeight: FontWeight.w600,
+  );
+
+  final double paddingAngle  = horizontalPadding / radius;
+  final double usableSweep   = sweepAngle - (paddingAngle * 2);
+  if (usableSweep <= 0) return;
+
+  final double leftBoundary  = startAngle + paddingAngle;
+  final double rightBoundary = startAngle + sweepAngle - paddingAngle;
+  final double arcLength     = radius * usableSweep;
+
+  // Measure each character width upfront
+  double _charWidth(String char) {
+    final tp = TextPainter(
+      text: TextSpan(text: char, style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    return tp.width;
+  }
+
+  // Measure ellipsis width
+  final double ellipsisWidth = _charWidth('.') * 3;
+
+  // Manually build truncated string that fits arcLength
+  final List<String> allChars = text.split('');
+  double usedWidth = 0;
+  String displayText = text;
+  bool truncated = false;
+
+  for (int i = 0; i < allChars.length; i++) {
+    final double cw = _charWidth(allChars[i]);
+    // Check if remaining chars won't all fit
+    // Measure full remaining text to decide
+    if (usedWidth + cw > arcLength) {
+      // Need to truncate — backtrack to fit '...'
+      // Remove chars from end until ellipsis fits
+      String truncated_str = text.substring(0, i);
+      while (truncated_str.isNotEmpty) {
+        final double testWidth = truncated_str.split('').fold(0.0, (sum, c) => sum + _charWidth(c)) + ellipsisWidth;
+        if (testWidth <= arcLength) break;
+        truncated_str = truncated_str.substring(0, truncated_str.length - 1);
+      }
+      displayText = '${truncated_str}...';
+      truncated = true;
+      break;
+    }
+    usedWidth += cw;
+  }
+
+  // Build painters for final display text
+  final List<String> characters = displayText.split('');
+  double totalWidth = 0;
+  final List<TextPainter> painters = characters.map((char) {
+    final tp = TextPainter(
+      text: TextSpan(text: char, style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    totalWidth += tp.width;
+    return tp;
+  }).toList();
+
+  // Center within usable arc
+  final double arcMidAngle   = startAngle + sweepAngle / 2;
+  final double textHalfAngle = (totalWidth / radius) / 2;
+
+  double currentAngle = arcMidAngle - textHalfAngle;
+  if (currentAngle < leftBoundary) currentAngle = leftBoundary;
+
+  for (final tp in painters) {
+    final double charAngle = tp.width / radius;
+    final double angle     = currentAngle + charAngle / 2;
+
+    if (currentAngle + charAngle > rightBoundary) break;
+
+    final offset = Offset(
+      center.dx + cos(angle) * radius,
+      center.dy + sin(angle) * radius,
+    );
+
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.rotate(angle + pi / 2);
+    tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+    canvas.restore();
+
+    currentAngle += charAngle;
+  }
+}
   @override
   bool shouldRepaint(covariant LearningMapPainter old) =>
       old.rotationAngle != rotationAngle ||

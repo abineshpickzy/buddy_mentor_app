@@ -1,6 +1,8 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
+import 'package:buddymentor/features/mentee/program_purchase/widgets/program_card_skeleton.dart';
+import 'package:buddymentor/features/mentee/program_purchase/widgets/stat_card_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -115,14 +117,14 @@ class ProgramList extends ConsumerWidget {
                   _StatCard(icon: Icons.trending_up, value: stats.avgRating.toString(), label: "Avg. Rating", color: Colors.indigo),
                 ],
               ),
-              loading: () => const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _StatCard(icon: Icons.book_outlined, value: "...", label: "Total Programs", color: Colors.green),
-                  _StatCard(icon: Icons.people_outline, value: "...", label: "Active Learners", color: Colors.blue),
-                  _StatCard(icon: Icons.trending_up, value: "...", label: "Avg. Rating", color: Colors.indigo),
-                ],
-              ),
+                        loading: () => const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                StatCardSkeleton(),
+                StatCardSkeleton(),
+                StatCardSkeleton(),
+              ],
+            ),
               error: (error, stack) => const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -152,12 +154,12 @@ class ProgramList extends ConsumerWidget {
                   showFreeTrial: program.showFreeTrial,
                 )).toList(),
               ),
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
+                        loading: () => Column(
+              children: List.generate(
+                3,
+                (index) => const ProgramCardSkeleton(),
               ),
+            ),
               error: (error, stack) => Center(
                 child: Column(
                   children: [

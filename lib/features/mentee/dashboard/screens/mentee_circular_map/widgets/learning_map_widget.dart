@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'package:buddymentor/shared/utils/app_toast.dart';
 import 'package:flutter/material.dart';
 import '../models/learning_map_models.dart';
 import '../painter/learning_map_painter.dart';
@@ -266,6 +267,11 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
           (distInZone / bandWidth).floor().clamp(0, chCount - 1);
 
       final chapter = module.chapters[chapterIndex];
+
+      if (chapter.isLocked) {
+        AppToast.show(context, message: ' "${chapter.title}"  chapter is locked!');
+        return;
+      }
       debugPrint(
         '\n🟢 Chapter Tapped!'
         '\n   📚 Module  : ${module.moduleName}'
