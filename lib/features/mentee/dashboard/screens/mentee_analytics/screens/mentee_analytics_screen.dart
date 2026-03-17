@@ -1,5 +1,7 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
+import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
+import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,64 +13,15 @@ class MenteeAnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final programOverviewAsync = ref.watch(programOverviewProvider);
+    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Row(
-          children: [
-        
-            const SizedBox(width: 8),
-            Text(
-              'Analytics',
-              style: GoogleFonts.inter(
-                color: const Color(0xFF1A1A2E),
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Divider(
-            height: 0.5,
-            thickness: 0.5,
-            color: Colors.grey.shade200,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
-              onTap: () {
-                  context.go('/menteeprofile');
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8EAF6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                   
-                  Icons.person_outline,
-                  size: 18,
-                  color: Color(0xFF5C6280),
-                ),
-              ),
-            ),
-          ),
-        ],
+      drawer: const ProfileSidebar(), // ✅ using ProfileSidebar
+      appBar: _AnalyticsAppBar(
+        onMenuTap: () => scaffoldKey.currentState?.openDrawer(),
+        onProfileTap: () => context.push('/menteeprofile'),
       ),
       body: programOverviewAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -107,14 +60,11 @@ class MenteeAnalyticsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Progress card ──────────────────────────────────
                       _ProgressCard(
                         progress: progress,
                         label: chaptersLabel,
                       ),
                       const SizedBox(height: 28),
-
-                      // ── Section title ──────────────────────────────────
                       Text(
                         'Skill progress chapter',
                         style: GoogleFonts.inter(
@@ -124,8 +74,6 @@ class MenteeAnalyticsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // ── Skill rows ─────────────────────────────────────
                       ...skills.map(
                         (s) => _SkillProgressItem(
                           label: s.label,
@@ -137,8 +85,6 @@ class MenteeAnalyticsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-
-              // ── Continue Learning button ───────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: SizedBox(
@@ -198,7 +144,93 @@ class MenteeAnalyticsScreen extends ConsumerWidget {
   }
 }
 
-// ─── Progress Card ──────────────────────────────────────────────────────────
+// ─── AppBar ─────────────────────────────────────────────────────────────────
+
+class _AnalyticsAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onMenuTap;
+  final VoidCallback onProfileTap;
+
+  const _AnalyticsAppBar({
+    required this.onMenuTap,
+    required this.onProfileTap,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(96); // ✅ taller for two rows
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+
+      // ── Row 1: only back button ──────────────────────────
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black87),
+        onPressed: () => Navigator.of(context).maybePop(),
+      ),
+      title: const SizedBox.shrink(), // ✅ nothing else in top row
+      centerTitle: false,
+      titleSpacing: 0,
+
+      // ── Row 2: sidebar icon + title + profile icon ───────
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Row(
+                children: [
+                  // ✅ sidebar icon
+                  SidebarIcon(
+                    onTap: onMenuTap,
+                  ),
+                  const SizedBox(width: 10),
+                  // ✅ title
+                  Expanded(
+                    child: Text(
+                      'Analytics',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF1A1A2E),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  // ✅ profile icon
+                  GestureDetector(
+                    onTap: onProfileTap,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8EAF6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person_outline,
+                        size: 18,
+                        color: Color(0xFF5C6280),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // ✅ bottom divider
+            Divider(
+              height: 0.5,
+              thickness: 0.5,
+              color: Colors.grey.shade200,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// ─── Progress Card ───────────────────────────────────────────────────────────
 
 class _ProgressCard extends StatelessWidget {
   final double progress;
@@ -226,7 +258,6 @@ class _ProgressCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Ring
           SizedBox(
             width: 140,
             height: 140,
@@ -256,7 +287,6 @@ class _ProgressCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Label below ring
           Text(
             label,
             style: GoogleFonts.inter(
@@ -270,8 +300,7 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-// ─── Skill Progress Item ────────────────────────────────────────────────────
-// Matches screenshot: NO card/shadow — just plain label + % row, thin bar, divider
+// ─── Skill Progress Item ─────────────────────────────────────────────────────
 
 class _SkillProgressItem extends StatelessWidget {
   final String label;
@@ -288,7 +317,6 @@ class _SkillProgressItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label + percentage
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -311,19 +339,16 @@ class _SkillProgressItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // Thin progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
               backgroundColor: const Color(0xFFEEEEEE),
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               minHeight: 6,
             ),
           ),
           const SizedBox(height: 16),
-          // Divider between items (matches screenshot)
           const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
           const SizedBox(height: 12),
         ],
@@ -332,7 +357,7 @@ class _SkillProgressItem extends StatelessWidget {
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 class _SkillStat {
   final String label;

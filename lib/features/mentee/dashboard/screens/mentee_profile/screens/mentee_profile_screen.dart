@@ -12,7 +12,15 @@ class MenteeProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final userData = authState.fullUserData;
-    
+
+    final name =
+        "${userData?["first_name"] ?? ""} ${userData?["last_name"] ?? ""}".trim();
+    final email = userData?["email"]?["id"] ?? "arjun.mehta@university.edu";
+    final phone =
+        "+${userData?["mobile"]?["dialing_code"] ?? "91"} ${userData?["mobile"]?["number"] ?? "98765 43210"}";
+    final discipline = userData?["discipline"] ?? "Computer Engineering";
+    final institution = userData?["institution"] ?? "NIT Surat";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
@@ -20,7 +28,7 @@ class MenteeProfileScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.canPop(),
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: const Text(
           'Profile',
@@ -37,87 +45,106 @@ class MenteeProfileScreen extends ConsumerWidget {
             onPressed: () {},
           ),
         ],
-      ), // Light greyish background
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Remove the duplicate blue header since we now have AppBar
+            // ── Blue header + overlapping avatar ─────────────
             Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                // Blue background (reduced height)
                 Container(
                   height: 80,
                   width: double.infinity,
                   color: _primaryBlue,
                 ),
-
-                // Profile Image (Overlapping)
                 Positioned(
                   top: 30,
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const CircleAvatar(
-                          radius: 40,
-                          backgroundImage: AssetImage('assets/images/logo.png'),
-                        ),
-                      ),
-                    ],
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircleAvatar(
+                      radius: 44,
+                      backgroundImage: AssetImage('assets/images/logo.png'),
+                    ),
                   ),
                 ),
               ],
             ),
 
-            // Spacing for the overlapping avatar
-            const SizedBox(height: 50),
+            const SizedBox(height: 54),
 
-            // Name and ID below avatar
+            // ── Name ─────────────────────────────────────────
             Text(
-              "${userData?["first_name"] ?? ""} ${userData?["last_name"] ?? "User"}".trim(),
+              name.isEmpty ? "User" : name,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF333333),
+                color: Color(0xFF1A1A2E),
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              "Mentee • ID: ${userData?["mentee_id"]?.toString() ?? "Loading..."}",
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+
+            // ── Subtitle: Mentee • Week 5 ─────────────────────
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Mentee",
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("•",
+                      style: TextStyle(fontSize: 13, color: Colors.grey)),
+                ),
+                const Text(
+                  "Week 5", // replace with dynamic week if available
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+              ],
             ),
 
             const SizedBox(height: 24),
 
-            // 3. Info Card
+            // ── Info card ─────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                  border: Border.all(color: Colors.grey.withOpacity(0.1)),
                 ),
                 child: Column(
                   children: [
-                    _buildInfoRow(Icons.email_outlined, "EMAIL", userData?["email"]?["id"] ?? "test@gmail.com"),
-                    const Divider(height: 1),
-                    _buildInfoRow(Icons.phone_outlined, "PHONE", "+${userData?["mobile"]?["dialing_code"] ?? "91"} ${userData?["mobile"]?["number"] ?? "2314569780"}"),
-                    const Divider(height: 1),
-                    _buildInfoRow(Icons.book_outlined, "DISCIPLINE", "${userData?["discipline"] ?? "Computer Engineering"}"),
-                    const Divider(height: 1),
-                    _buildInfoRow(Icons.location_on_outlined, "STATE", userData?["state"] ?? "Tamil Nadu"),
-                    const Divider(height: 1),
-                    _buildInfoRow(Icons.badge_outlined, "MENTEE ID", userData?["mentee_id"]?.toString() ?? "91TNCH00002"),
+                    _buildInfoRow(
+                      Icons.email_outlined,
+                      "EMAIL",
+                      email,
+                    ),
+                    _buildDivider(),
+                    _buildInfoRow(
+                      Icons.phone_outlined,
+                      "PHONE",
+                      phone,
+                    ),
+                    _buildDivider(),
+                    _buildInfoRow(
+                      Icons.book_outlined,
+                      "DISCIPLINE",
+                      discipline.toString(),
+                    ),
+                    _buildDivider(),
+                    _buildInfoRow(
+                      Icons.account_balance_outlined,
+                      "INSTITUTION",
+                      institution,
+                    ),
                   ],
                 ),
               ),
@@ -125,39 +152,56 @@ class MenteeProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // 4. Menu List
+            // ── Menu tiles — separate cards ───────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    _buildMenuTile(Icons.person_outline, "Edit Profile", () => context.push('/menteeprofile/edit')),
-                    _buildMenuTile(Icons.settings_outlined, "Settings", () {}),
-                    _buildMenuTile(Icons.headset_mic_outlined, "Contact Us", () {}),
-                    _buildMenuTile(Icons.help_outline, "Help & FAQ", () {}),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  _buildMenuTile(
+                    Icons.person_outline,
+                    "Edit Profile",
+                    () => context.push('/menteeprofile/edit'),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMenuTile(
+                    Icons.settings_outlined,
+                    "Settings",
+                    () {},
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMenuTile(
+                    Icons.headset_mic_outlined,
+                    "Contact Us",
+                    () {},
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMenuTile(
+                    Icons.help_outline,
+                    "Help & FAQ",
+                    () {},
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
 
-            // 5. Sign Out Button
+            // ── Sign out button ───────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 55),
-                  side: const BorderSide(color: Color(0xFFFFEBEE)),
+                  minimumSize: const Size(double.infinity, 52),
+                  side: BorderSide(color: Colors.grey.shade300),
                   backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: () async {
-                  await ref.read(authControllerProvider.notifier).logout();
+                  await ref
+                      .read(authControllerProvider.notifier)
+                      .logout();
                   if (context.mounted) context.go('/role');
                 },
                 child: const Row(
@@ -165,11 +209,19 @@ class MenteeProfileScreen extends ConsumerWidget {
                   children: [
                     Icon(Icons.logout, color: Colors.redAccent, size: 20),
                     SizedBox(width: 8),
-                    Text("Sign Out", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                    Text(
+                      "Sign Out",
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -177,25 +229,35 @@ class MenteeProfileScreen extends ConsumerWidget {
     );
   }
 
+  // ── Info row: icon + label/value, NO icon background box ──
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF2D4383), size: 22),
-          ),
-          const SizedBox(width: 15),
+          Icon(icon, color: const Color(0xFF2D4383), size: 22),
+          const SizedBox(width: 14),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
             ],
           ),
         ],
@@ -203,19 +265,40 @@ class MenteeProfileScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildDivider() =>
+      const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE),
+          indent: 16, endIndent: 16);
+
+  // ── Menu tile: each in its own white rounded card ──────────
   Widget _buildMenuTile(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0F2F8),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: const Color(0xFF2D4383), size: 20),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-      onTap: onTap,
+      child: ListTile(
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F2F8),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF2D4383), size: 20),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      ),
     );
   }
 }

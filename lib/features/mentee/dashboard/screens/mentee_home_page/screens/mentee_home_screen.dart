@@ -2,7 +2,7 @@ import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
-
+import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,21 +13,16 @@ class MenteeHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authControllerProvider);
     final programOverviewAsync = ref.watch(programOverviewProvider);
     final scaffoldKey = GlobalKey<ScaffoldState>();
 
-    final programName =
-        programOverviewAsync.value?.program.name ?? 'Programs';
+    final programName = programOverviewAsync.value?.program.name ?? 'Programs';
 
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: AppColors.white,
-      drawer: const ProfileSidebar(),
-      appBar: _HomeTopBar(
-        onMenuTap: () => scaffoldKey.currentState?.openDrawer(),
-        onProfileTap: () => context.push('/menteeprofile'),
-      ),
+      drawer: const ProfileSidebar(), // ✅ required for openDrawer()
+      appBar: const _HomeTopBar(),
       body: SafeArea(
         top: false,
         child: programOverviewAsync.when(
@@ -38,19 +33,12 @@ class MenteeHomeScreen extends ConsumerWidget {
             onRetry: () {},
           ),
           data: (programOverview) {
-            if (programOverview == null) {
-              return const _EmptyState();
-            }
+            if (programOverview == null) return const _EmptyState();
 
             final moduleList = programOverview.hierarchy.modules;
             final totalWeeks = moduleList.length;
             final completedWeeks =
                 moduleList.where((m) => m.status == 2).length;
-            final inProgressWeeks =
-                moduleList.where((m) => m.status == 1).length;
-            final pendingWeeks = moduleList
-                .where((m) => m.status == 0 && !m.isLocked)
-                .length;
             final progress =
                 totalWeeks > 0 ? completedWeeks / totalWeeks : 0.0;
 
@@ -61,22 +49,32 @@ class MenteeHomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header row
+                  // ── Header row ───────────────────────────────
                   Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            programName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
-                                ),
+                          Row(
+                            children: [
+                              // ✅ Menu icon — left of program name
+                              SidebarIcon(
+                                onTap: () =>
+                                    scaffoldKey.currentState?.openDrawer(),
+                              ),
+                              const SizedBox(width: 20),
+                              Text(
+                                programName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                              ),
+                            ],
                           ),
                           GestureDetector(
                             onTap: () => context.push('/menteeprofile'),
@@ -93,16 +91,16 @@ class MenteeHomeScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                        
                         ],
                       ),
-                      SizedBox(height: 5),  
-                      Divider( height: 1, color: AppColors.border, )
-                     ],
+                      const SizedBox(height: 5),
+                      Divider(height: 1, color: AppColors.border),
+                    ],
                   ),
+
                   const SizedBox(height: 24),
 
-                  // Progress + CTA
+                  // ── Progress + CTA ───────────────────────────
                   Center(
                     child: Column(
                       children: [
@@ -113,9 +111,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 20),
 
-                        // CTA button
                         SizedBox(
-                 
                           height: 46,
                           child: ElevatedButton.icon(
                             onPressed: () => context.push('/menteemap'),
@@ -146,7 +142,7 @@ class MenteeHomeScreen extends ConsumerWidget {
 
                   const SizedBox(height: 32),
 
-                  // Section label
+                  // ── Section label ────────────────────────────
                   Text(
                     'WEEKLY SKILL TITLES',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -157,7 +153,7 @@ class MenteeHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Week list
+                  // ── Week list ────────────────────────────────
                   ListView.builder(
                     itemCount: moduleList.length,
                     shrinkWrap: true,
@@ -190,13 +186,10 @@ class MenteeHomeScreen extends ConsumerWidget {
   }
 }
 
-// ─── Top Bar ───────────────────────────────────────────────────────────────
+// ─── Top Bar ────────────────────────────────────────────────────────────────
 
 class _HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback onMenuTap;
-  final VoidCallback onProfileTap;
-
-  const _HomeTopBar({required this.onMenuTap, required this.onProfileTap});
+  const _HomeTopBar();
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -204,6 +197,7 @@ class _HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: false, // ✅ no back/drawer icon in AppBar
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -225,15 +219,14 @@ class _HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
             width: 32,
           ),
           const SizedBox(width: 8),
-  Text(
+          Text(
             'Buddy Mentor',
             style: GoogleFonts.inter(
               color: AppColors.primary,
               fontWeight: FontWeight.w700,
-              fontSize: 16,
+              fontSize: 18,
             ),
           ),
-       
         ],
       ),
       actions: [
@@ -263,9 +256,6 @@ class _ProgressCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shown = completedWeeks.clamp(0, totalWeeks);
-
-    // Both outer SizedBox and CircularProgressIndicator use the same size
-    // so the arc is never clipped and progress value (0.0–1.0) renders correctly.
     const double size = 120;
 
     return SizedBox(
@@ -278,7 +268,7 @@ class _ProgressCircle extends StatelessWidget {
             height: size,
             width: size,
             child: CircularProgressIndicator(
-              value:progress, // completedWeeks / totalWeeks → 0.0 to 1.0
+              value: progress,
               strokeWidth: 10,
               strokeCap: StrokeCap.round,
               backgroundColor: const Color(0xFFDFDFDF),

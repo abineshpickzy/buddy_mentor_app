@@ -98,7 +98,10 @@ class SessionDownloadables extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10 ,horizontal: 10),
+      margin: const EdgeInsets.symmetric(vertical:5),
+    
         decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.25) ,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.border),
       ),

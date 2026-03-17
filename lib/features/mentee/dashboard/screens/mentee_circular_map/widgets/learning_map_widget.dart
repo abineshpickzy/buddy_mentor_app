@@ -53,19 +53,24 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
+      reverseDuration: const Duration(milliseconds: 500), // ✅
     );
+
     _expandController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 450),
+      reverseDuration: const Duration(milliseconds: 350), // ✅
     );
 
     _rotationAnimation = CurvedAnimation(
       parent: _rotationController,
       curve: Curves.easeInOutCubic,
     );
+
     _expandAnimation = CurvedAnimation(
       parent: _expandController,
       curve: Curves.easeOutBack,
+      reverseCurve: Curves.easeInCubic, // ✅ smooth ease-in on reverse
     );
 
     _rotationController.addListener(() {
@@ -87,10 +92,64 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
 
   @override
   void dispose() {
+    _expandController.removeStatusListener(_onExpandStatus);
     _rotationController.dispose();
     _expandController.dispose();
     super.dispose();
   }
+
+  void _onExpandStatus(AnimationStatus status) {
+    if (status == AnimationStatus.dismissed) {
+      _expandController.removeStatusListener(_onExpandStatus);
+      if (mounted) setState(() => _selectedModuleIndex = -1);
+    }
+  }
+
+  void _onModuleTapped(int moduleIndex) {
+    if (moduleIndex == _selectedModuleIndex) {
+      _resetSelection();
+      return;
+    }
+    _rotationController.stop();
+    _expandController.stop();
+
+    if (_selectedModuleIndex != -1) {
+      // ✅ switching from one module to another — collapse then expand
+      _expandController.reverse().then((_) {
+        if (mounted) _selectModule(moduleIndex);
+      });
+    } else {
+      _selectModule(moduleIndex);
+    }
+  }
+
+  void _selectModule(int moduleIndex) {
+    if (_selectedModuleIndex == -1) _savedRotationAngle = _rotationAngle;
+    setState(() => _selectedModuleIndex = moduleIndex);
+    _rotationFrom = _rotationAngle;
+    _rotationTo   = _targetRotationForModule(moduleIndex);
+    _rotationController.forward(from: 0);
+    _expandController.forward(from: 0);
+  }
+
+  void _resetSelection() {
+    _rotationController.stop();
+    _expandController.stop();
+    _expandController.removeStatusListener(_onExpandStatus);
+
+    // ✅ Start rotation back immediately — simultaneous with collapse
+    _rotationFrom = _rotationAngle;
+    _rotationTo   = _savedRotationAngle;
+    _rotationController.forward(from: 0);
+
+    // ✅ Collapse expand simultaneously
+    _expandController.reverse();
+
+    // ✅ Clear selectedModuleIndex only after expand fully collapses
+    _expandController.addStatusListener(_onExpandStatus);
+  }
+
+  // ── rest of methods unchanged ──────────────────────────────
 
   (List<double>, List<double>) _computeLayout() {
     final int n            = widget.subject.modules.length;
@@ -111,7 +170,6 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
     }
 
     List<double> startAngles = List.filled(n, 0);
-    // CHANGED: start at 12 o'clock (-pi/2) instead of 3 o'clock (0)
     startAngles[0] = -pi / 2 + gap / 2;
     for (int i = 1; i < n; i++) {
       startAngles[i] = startAngles[i - 1] + sweeps[i - 1] + gap;
@@ -142,7 +200,6 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
           ? baseSweep - gap + bonus
           : baseSweep - gap - shrink;
     }
-    // CHANGED: start at 12 o'clock (-pi/2) instead of 3 o'clock (0)
     startAngles[0] = -pi / 2 + gap / 2;
     for (int i = 1; i < n; i++) {
       startAngles[i] = startAngles[i - 1] + sweeps[i - 1] + gap;
@@ -156,39 +213,6 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
     if (diff < -pi) diff += 2 * pi;
 
     return _rotationAngle + diff;
-  }
-
-  void _onModuleTapped(int moduleIndex) {
-    if (moduleIndex == _selectedModuleIndex) {
-      _resetSelection();
-      return;
-    }
-    _rotationController.stop();
-    _expandController.stop();
-
-    if (_selectedModuleIndex != -1) {
-      _expandController.reverse().then((_) => _selectModule(moduleIndex));
-    } else {
-      _selectModule(moduleIndex);
-    }
-  }
-
-  void _selectModule(int moduleIndex) {
-    if (_selectedModuleIndex == -1) _savedRotationAngle = _rotationAngle;
-    setState(() => _selectedModuleIndex = moduleIndex);
-    _rotationFrom = _rotationAngle;
-    _rotationTo   = _targetRotationForModule(moduleIndex);
-    _rotationController.forward(from: 0);
-    _expandController.forward(from: 0);
-  }
-
-  void _resetSelection() {
-    _expandController.reverse().then((_) {
-      _rotationFrom = _rotationAngle;
-      _rotationTo   = _savedRotationAngle;
-      _rotationController.forward(from: 0);
-      setState(() => _selectedModuleIndex = -1);
-    });
   }
 
   double _normalizeAngle(double angle) {
@@ -269,15 +293,10 @@ class _LearningMapWidgetState extends State<LearningMapWidget>
       final chapter = module.chapters[chapterIndex];
 
       if (chapter.isLocked) {
-        AppToast.show(context, message: ' "${chapter.title}"  chapter is locked!');
+        AppToast.show(context,
+            message: '"${chapter.title}" chapter is locked!');
         return;
       }
-      debugPrint(
-        '\n🟢 Chapter Tapped!'
-        '\n   📚 Module  : ${module.moduleName}'
-        '\n   📖 Chapter : ${chapter.title}\n'
-        '\n   📘 ID      : ${chapter.id}\n'
-      );
 
       Navigator.push(
         context,

@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:buddymentor/shared/utils/app_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../models/session_asset_model.dart';
 import '../service/session_download_service.dart';
 
@@ -42,46 +40,29 @@ class AssetPreviewSheet extends StatefulWidget {
   State<AssetPreviewSheet> createState() => _AssetPreviewSheetState();
 }
 
-class _AssetPreviewSheetState extends State<AssetPreviewSheet>
-    with WidgetsBindingObserver {
+class _AssetPreviewSheetState extends State<AssetPreviewSheet> {
   Uint8List? _bytes;
-  String?    _pdfPath;
   bool       _loading     = true;
   bool       _downloading = false;
   bool       _downloaded  = false;
   String?    _error;
 
   int  _totalPages  = 0;
-  int  _currentPage = 0;
+  int  _currentPage = 1; // Syncfusion is 1-based
   bool _pdfReady    = false;
-  bool _showPdf     = true;
 
-  PDFViewController? _pdfController;
+  final PdfViewerController _pdfController = PdfViewerController();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _loadPreview();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    _pdfController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.asset.type != 'pdf') return;
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      if (mounted) setState(() => _showPdf = false);
-    } else if (state == AppLifecycleState.resumed) {
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) setState(() => _showPdf = true);
-      });
-    }
   }
 
   Future<void> _loadPreview() async {
@@ -92,19 +73,12 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
         assetId: widget.asset.id,
       );
 
-      if (widget.asset.type == 'pdf') {
-        final tmp  = await getTemporaryDirectory();
-        final file = File('${tmp.path}/preview_${widget.asset.id}.pdf');
-        await file.writeAsBytes(bytes, flush: true);
-        if (mounted) {
-          setState(() {
-            _pdfPath = file.path;
-            _bytes   = bytes;
-            _loading = false;
-          });
-        }
-      } else {
-        if (mounted) setState(() { _bytes = bytes; _loading = false; });
+      // ✅ No temp file needed — SfPdfViewer.memory() handles bytes directly
+      if (mounted) {
+        setState(() {
+          _bytes   = bytes;
+          _loading = false;
+        });
       }
     } catch (e) {
       debugPrint('❌ Preview error: $e');
@@ -122,8 +96,8 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
       if (mounted) {
         setState(() { _downloading = false; _downloaded = true; });
         AppToast.show(
-          context, 
-          message: "File Saved Successfully!", 
+          context,
+          message: "File Saved Successfully!",
           type: ToastType.success,
           highPriority: true,
         );
@@ -153,7 +127,7 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
       child: Column(
         children: [
           _buildHeader(),
-          Divider(height: 1, color: Colors.white12),
+          const Divider(height: 1, color: Colors.white12),
           Expanded(child: _buildPreview()),
         ],
       ),
@@ -171,7 +145,8 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
               children: [
                 Center(
                   child: Container(
-                    width: 36, height: 4,
+                    width: 36,
+                    height: 4,
                     decoration: BoxDecoration(
                       color: Colors.white24,
                       borderRadius: BorderRadius.circular(2),
@@ -191,25 +166,13 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
                 ),
                 if (widget.asset.type == 'pdf' && _pdfReady)
                   Text(
-                    'Page ${_currentPage + 1} of $_totalPages',
+                    'Page $_currentPage of $_totalPages',
                     style: const TextStyle(color: Colors.white38, fontSize: 11),
                   ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          // Previous page button for PDF
-          if (widget.asset.type == 'pdf' && _pdfReady && _currentPage > 0)
-            IconButton(
-              icon: const Icon(Icons.arrow_upward, color: Colors.white54, size: 20),
-              onPressed: () => _pdfController?.setPage(_currentPage - 1),
-            ),
-          // Next page button for PDF
-          if (widget.asset.type == 'pdf' && _pdfReady && _currentPage < _totalPages - 1)
-            IconButton(
-              icon: const Icon(Icons.arrow_downward, color: Colors.white54, size: 20),
-              onPressed: () => _pdfController?.setPage(_currentPage + 1),
-            ),
           _buildDownloadButton(),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white70),
@@ -225,7 +188,8 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
       return const Padding(
         padding: EdgeInsets.all(12),
         child: SizedBox(
-          width: 20, height: 20,
+          width: 20,
+          height: 20,
           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
         ),
       );
@@ -244,6 +208,7 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
   }
 
   Widget _buildPreview() {
+    // ── Loading ────────────────────────────────────────────────
     if (_loading) {
       return const Center(
         child: Column(
@@ -251,13 +216,16 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
           children: [
             CircularProgressIndicator(color: Colors.white54),
             SizedBox(height: 14),
-            Text('Loading preview…',
-                style: TextStyle(color: Colors.white54, fontSize: 13)),
+            Text(
+              'Loading preview…',
+              style: TextStyle(color: Colors.white54, fontSize: 13),
+            ),
           ],
         ),
       );
     }
 
+    // ── Error ──────────────────────────────────────────────────
     if (_error != null) {
       return Center(
         child: Padding(
@@ -267,12 +235,16 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
             children: [
               const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
               const SizedBox(height: 12),
-              const Text('Failed to load preview',
-                  style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const Text(
+                'Failed to load preview',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
               const SizedBox(height: 4),
-              Text(_error!,
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
-                  textAlign: TextAlign.center),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: () {
@@ -297,50 +269,37 @@ class _AssetPreviewSheetState extends State<AssetPreviewSheet>
       );
     }
 
-    // ── PDF preview ────────────────────────────────────────────
-    if (widget.asset.type == 'pdf' && _pdfPath != null) {
-      if (!_showPdf) {
-        return const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: Colors.white54),
-              SizedBox(height: 12),
-              Text('Resuming…',
-                  style: TextStyle(color: Colors.white54, fontSize: 13)),
-            ],
-          ),
-        );
-      }
+    // ── PDF preview (continuous scroll) ───────────────────────
+    if (widget.asset.type == 'pdf' && _bytes != null) {
+      return SfPdfViewer.memory(
+        _bytes!,
+        controller: _pdfController,
 
-      return PDFView(
-        key: ValueKey('pdf_$_showPdf'),
-        filePath: _pdfPath!,
-        enableSwipe: true,         // ✅ vertical swipe to scroll pages
-        swipeHorizontal: false,    // ✅ vertical scroll like a document
-        autoSpacing: true,         // ✅ space between pages
-        pageFling: false,          // ✅ false = continuous scroll, not snap
-        pageSnap: false,           // ✅ false = continuous scroll
-        fitEachPage: false,        // ✅ false = shows full page width, scrollable
-        fitPolicy: FitPolicy.WIDTH, // ✅ fit to width so full content is visible
-        backgroundColor: const Color(0xFF1A1A2E),
-        onViewCreated: (controller) {
-          _pdfController = controller;
-        },
-        onRender: (pages) {
+        // ✅ True continuous vertical scroll like a PDF reader
+        scrollDirection: PdfScrollDirection.vertical,
+        pageLayoutMode: PdfPageLayoutMode.continuous,
+
+        canShowScrollHead: true,
+        canShowScrollStatus: true,
+        canShowPaginationDialog: false,
+        pageSpacing: 8,
+
+        onDocumentLoaded: (details) {
           if (mounted) {
             setState(() {
-              _totalPages = pages ?? 0;
+              _totalPages = details.document.pages.count;
               _pdfReady   = true;
             });
           }
         },
-        onPageChanged: (page, total) {
-          if (mounted) setState(() => _currentPage = page ?? 0);
+        onPageChanged: (details) {
+          if (mounted) {
+            setState(() => _currentPage = details.newPageNumber);
+          }
         },
-        onError: (error) {
-          debugPrint('❌ PDFView error: $error');
-          if (mounted) setState(() => _error = error.toString());
+        onDocumentLoadFailed: (details) {
+          debugPrint('❌ PDF load failed: ${details.description}');
+          if (mounted) setState(() => _error = details.description);
         },
       );
     }

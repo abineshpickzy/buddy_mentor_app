@@ -3,6 +3,7 @@ import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
 import 'package:buddymentor/features/mentee/program_purchase/widgets/program_card_skeleton.dart';
 import 'package:buddymentor/features/mentee/program_purchase/widgets/stat_card_skeleton.dart';
+import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,9 +55,8 @@ class ProgramList extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            GestureDetector(
+            SidebarIcon(
               onTap: () => _showProfileSidebar(context),
-              child: const Icon(Icons.menu_open, color: Color(0xFF5C6280), size: 24),
             ),
             const SizedBox(width: 20),
             Text(
