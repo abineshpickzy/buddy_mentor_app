@@ -1,3 +1,6 @@
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_list_controller.dart';
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_selection_provider.dart';
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:buddymentor/features/auth/data/models/auth_models.dart';
 import 'package:buddymentor/features/auth/data/services/storage_service.dart';
@@ -86,8 +89,26 @@ class AuthController extends Notifier<AuthState> {
 
   // Logout
   Future<void> logout() async {
+    // Clear storage first
     await StorageService.clearAuthData();
+    
+    // Clear selected program
+    ref.read(selectedProgramProvider.notifier).clearSelection();
+    
+    // Reset auth state
     state = AuthState();
+    
+    // Invalidate providers after a small delay to avoid circular dependency
+    Future.microtask(() {
+      try {
+        ref.invalidate(programsProvider);
+        ref.invalidate(programStatsProvider);
+        ref.invalidate(programOverviewProvider);
+      } catch (e) {
+        // Ignore invalidation errors during logout
+        print('Provider invalidation error during logout: $e');
+      }
+    });
   }
 
   // Refresh token

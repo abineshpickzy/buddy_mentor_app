@@ -23,9 +23,9 @@ class ProgramOverviewService {
     }
   }
 
-   Future<ProgramOverview> fetchProgram(String productId,int type) async {
+   Future<ProgramOverview> fetchProgram(String programId,int type) async {
     try {
-      final enrolledProgramEndpoint = "prgm/$type/$productId/ovw";
+      final enrolledProgramEndpoint = "prgm/$type/$programId/ovw";
 
       final response = await _dio.get(enrolledProgramEndpoint);
       
@@ -40,9 +40,13 @@ class ProgramOverviewService {
   }
 
   // TODO: Implement when API is ready
-  Future<bool> markSessionComplete(String sessionId) async {
+  Future<bool> markSessionComplete(String productId , String programId , String sessionId) async {
     // Placeholder for future API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    final response = await _dio.post(ApiEndpoints.sessionComplete, data:
+      {
+    "product_id" : productId ,
+    "program_id" : programId,
+    "node_id" : sessionId} );
     return true;
   }
 
@@ -56,7 +60,6 @@ class ProgramOverviewService {
         
         },
       );
-      
       if (response.data['success'] == true) {
         return true;
       } else {

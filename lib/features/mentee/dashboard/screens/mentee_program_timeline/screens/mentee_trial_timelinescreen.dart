@@ -2,9 +2,14 @@ import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/models/timeline_model.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/widgets/timeline_skeleton.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/widgets/timeline_empty_state.dart';
+import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
+import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MenteeTrialTimelineScreen extends ConsumerWidget {
   const MenteeTrialTimelineScreen({super.key});
@@ -12,87 +17,37 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final programOverviewAsync = ref.watch(programOverviewProvider);
+    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: Colors.white,
+      drawer: const ProfileSidebar(),
+      appBar: _TimelineAppBar(
+        onMenuTap: () => scaffoldKey.currentState?.openDrawer(),
+        onProfileTap: () => context.push('/menteeprofile'),
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── AppBar style header ─────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.chevron_left, size: 28, color: Colors.black87),
-                      onPressed: () => context.pop(),
-                    ),
-                  ),
-                  const Text(
-                    'Skill Chapters Timeline',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Dynamic subtitle based on program data ────────────────
-            programOverviewAsync.when(
-              data: (programOverview) {
-                if (programOverview != null) {
-                  final moduleCount = programOverview.hierarchy.modules.length;
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text(
-                      '$moduleCount-week structured journey',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
-                  );
-                }
-                return const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Text(
-                    '16-week structured journey',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Text(
-                  'Loading program...',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-              ),
-              error: (error, stack) => const Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Text(
-                  '16-week structured journey',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // ── Timeline list ────────────────────────────────────────
             Expanded(
               child: programOverviewAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildFallbackTimeline(),
+                loading: () => const TimelineSkeletonLoader(),
+                error: (error, stack) => TimelineEmptyState.error(
+                  onRetry: () => ref.invalidate(programOverviewProvider),
+                ),
                 data: (programOverview) {
                   if (programOverview == null) {
-                    return _buildFallbackTimeline();
+                    return TimelineEmptyState.noProgram(
+                      onRetry: () => context.go('/programs'),
+                    );
                   }
-                  return _buildProgramTimeline(programOverview);
+                  return _buildProgramTimeline(context, programOverview);
                 },
               ),
             ),
@@ -105,8 +60,8 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
   Widget _buildDot(String status) {
     if (status == 'completed') {
       return Container(
-        width: 26,
-        height: 26,
+        width: 28,
+        height: 28,
         decoration: const BoxDecoration(
           color: AppColors.primary,
           shape: BoxShape.circle,
@@ -117,8 +72,8 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
 
     if (status == 'inprogress') {
       return Container(
-        width: 26,
-        height: 26,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
@@ -126,8 +81,8 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
         ),
         child: Center(
           child: Container(
-            width: 8,
-            height: 8,
+            width: 9,
+            height: 9,
             decoration: const BoxDecoration(
               color: AppColors.primary,
               shape: BoxShape.circle,
@@ -137,15 +92,16 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
       );
     }
 
-    // locked / pending
+    // locked
     return Container(
-      width: 26,
-      height: 26,
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.white,
         shape: BoxShape.circle,
+        border: Border.all(color: Colors.grey.shade300, width: 1.5),
       ),
-      child: Icon(Icons.lock_outline, size: 12, color: Colors.grey.shade400),
+      child: Icon(Icons.lock_outline, size: 13, color: Colors.grey.shade400),
     );
   }
 
@@ -154,43 +110,48 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
     final bool isInProgress = item.status == 'inprogress';
     final bool isCompleted = item.status == 'completed';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isLocked ? const Color(0xFFF7F8FA) : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isInProgress
-              ? AppColors.primary.withOpacity(0.4)
-              : Colors.grey.shade200,
-        ),
-      ),
-      child: GestureDetector(
-        onTap: isLocked ? (){
+    return GestureDetector(
+      onTap: isLocked
+          ? () {
               ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Complete pending chapters ! or wait for unlock next week !'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-        } : () {
-            // Navigate to first chapter of this module
-            if (module != null && module.chapters.isNotEmpty) {
-              final firstChapter = module.chapters[0];
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChapterSessions(
-                    chapterId: firstChapter.id,
-                    chapterName: firstChapter.name,
-                  ),
+                const SnackBar(
+                  content: Text('Complete pending chapters or wait for unlock!'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 2),
                 ),
               );
-            } else {
-              context.push('/menteemap');
             }
-        },
+          : () {
+              // Navigate to first chapter of this module
+              if (module != null && module.chapters.isNotEmpty) {
+                final firstChapter = module.chapters[0];
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChapterSessions(
+                      chapterId: firstChapter.id,
+                      chapterName: firstChapter.name,
+                    ),
+                  ),
+                );
+              } else {
+                context.push('/menteemap');
+              }
+            },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isLocked ? const Color(0xFFF7F8FA) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isInProgress
+                ? AppColors.primary.withOpacity(0.35)
+                : isCompleted
+                    ? Colors.grey.shade200
+                    : Colors.grey.shade200,
+            width: isInProgress ? 1.5 : 0.8,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -207,7 +168,7 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: isLocked ? Colors.grey.shade400 : Colors.black87,
+                color: isLocked ? Colors.grey.shade400 : const Color(0xFF1A1A2E),
               ),
             ),
             if (isCompleted) ...[
@@ -259,11 +220,11 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
     return Colors.grey.shade300;
   }
 
-  Widget _buildProgramTimeline(programOverview) {
+  Widget _buildProgramTimeline(BuildContext context, programOverview) {
     final modules = programOverview.hierarchy.modules;
     
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       itemCount: modules.length,
       itemBuilder: (context, index) {
         final module = modules[index];
@@ -295,83 +256,130 @@ class MenteeTrialTimelineScreen extends ConsumerWidget {
           status: status,
         );
 
-        return IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Left: dot + line ────────────────────────
-              SizedBox(
-                width: 40,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 14),
-                    _buildDot(timelineItem.status),
-                    if (!isLast)
-                      Expanded(
-                        child: Container(
-                          width: 2,
-                          color: _getLineColor(timelineItem.status),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // ── Right: card ─────────────────────────────
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildCard(context, timelineItem, module),
-                ),
-              ),
-            ],
-          ),
-        );
+        return _buildTimelineRow(context, timelineItem, isLast, module);
       },
     );
   }
 
-  Widget _buildFallbackTimeline() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final isLast = index == items.length - 1;
-
-        return IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Left: dot + line ────────────────────────
-              SizedBox(
-                width: 40,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 14),
-                    _buildDot(item.status),
-                    if (!isLast)
-                      Expanded(
-                        child: Container(
-                          width: 2,
-                          color: _getLineColor(item.status),
-                        ),
+  Widget _buildTimelineRow(BuildContext context, TimelineItem item, bool isLast, [dynamic module]) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // dot + line
+          SizedBox(
+            width: 44,
+            child: Column(
+              children: [
+                const SizedBox(height: 14),
+                _buildDot(item.status),
+                if (!isLast)
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 2,
+                        color: _getLineColor(item.status),
                       ),
-                  ],
-                ),
-              ),
-
-              // ── Right: card ─────────────────────────────
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildCard(context, item, null),
-                ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
-        );
-      },
+          // card
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: _buildCard(context, item, module),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── AppBar (same pattern as mentee timeline) ─────────────────────────────────────
+
+class _TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onMenuTap;
+  final VoidCallback onProfileTap;
+
+  const _TimelineAppBar({
+    required this.onMenuTap,
+    required this.onProfileTap,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(96);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+
+      // ── Row 1: back button only ──────────────────────────
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black87),
+        onPressed: () => Navigator.of(context).maybePop(),
+      ),
+      title: const SizedBox.shrink(),
+      centerTitle: false,
+      titleSpacing: 0,
+
+      // ── Row 2: sidebar icon + title + profile icon ───────
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Row(
+                children: [
+                  // sidebar icon
+                  SidebarIcon(
+                    onTap: onMenuTap,
+                  ),
+                  const SizedBox(width: 10),
+                  // title
+                  Expanded(
+                    child: Text(
+                      'Skill Chapters Timeline',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF1A1A2E),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  // profile icon
+                  GestureDetector(
+                    onTap: onProfileTap,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8EAF6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person_outline,
+                        size: 18,
+                        color: Color(0xFF5C6280),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              height: 0.5,
+              thickness: 0.5,
+              color: Colors.grey.shade200,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

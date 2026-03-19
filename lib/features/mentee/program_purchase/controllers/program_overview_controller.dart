@@ -1,3 +1,4 @@
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_selection_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/program_overview_model.dart';
 import '../services/program_overview_service.dart';
@@ -13,11 +14,24 @@ final programOverviewServiceProvider = Provider<ProgramOverviewService>((ref) {
 
 // Program Overview AsyncNotifier
 class ProgramOverviewNotifier extends AsyncNotifier<ProgramOverview?> {
-  @override
-  Future<ProgramOverview?> build() async {
-    // Initially return null, will be populated when fetchProgram is called
-    return null;
+@override
+Future<ProgramOverview?> build() async {
+  final selected = ref.watch(selectedProgramProvider);
+
+  if (selected == null) return null;
+
+  final service = ref.read(programOverviewServiceProvider);
+  print(selected.isFreeTrial);
+
+  if (selected.isFreeTrial) {
+    return service.fetchtrialProgram(selected.productId);
   }
+
+  return service.fetchProgram(
+    selected.programId,
+    selected.productType,
+  );
+}
 
   Future<void> fetchtrialProgram(String productId) async {
     state = const AsyncValue.loading();
@@ -27,18 +41,16 @@ class ProgramOverviewNotifier extends AsyncNotifier<ProgramOverview?> {
     });
   }
 
-    Future<void> fetchProgram(String productId,int type) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final service = ref.read(programOverviewServiceProvider);
-      return service.fetchProgram(productId,type);
-    });
-  }
-
   Future<bool> markSessionComplete(String sessionId) async {
+ 
+    final selected = ref.watch(selectedProgramProvider);
+    print("product id :"+ selected!.productId);
+    print(" program id : "+selected!.programId);
+    print("session id :"+sessionId); 
+
     try {
       final service = ref.read(programOverviewServiceProvider);
-      final success = await service.markSessionComplete(sessionId);
+      final success = await service.markSessionComplete(selected.productId,selected.programId,sessionId);
       
       if (success) {
         // Update local state only - no refetch

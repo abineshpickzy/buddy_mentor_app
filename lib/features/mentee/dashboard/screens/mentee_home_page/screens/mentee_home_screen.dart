@@ -1,6 +1,6 @@
 import 'package:buddymentor/core/constants/app_colors.dart';
-import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
+import 'package:buddymentor/features/mentee/dashboard/widgets/home_skeleton.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +21,12 @@ class MenteeHomeScreen extends ConsumerWidget {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: AppColors.white,
-      drawer: const ProfileSidebar(), // ✅ required for openDrawer()
+      drawer: const ProfileSidebar(), //
       appBar: const _HomeTopBar(),
       body: SafeArea(
         top: false,
         child: programOverviewAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const HomeSkeletonLoader(),
           error: (e, _) => _ErrorState(
             message: 'Error loading program',
             details: e.toString(),

@@ -16,11 +16,11 @@ final sessionAssetServiceProvider = Provider<SessionAssetService>((ref) {
 final sessionContentProvider =
     FutureProvider.family<SessionContentResponse, String>(
         (ref, sessionId) async {
-  // ✅ Use ref.read instead of ref.watch to avoid re-running on every change
+  //  Use ref.read instead of ref.watch to avoid re-running on every change
   final programOverview = await ref.read(programOverviewProvider.future);
 
   if (programOverview == null) {
-    // ✅ Return empty instead of throwing — prevents retry loop
+    //  Return empty instead of throwing — prevents retry loop
     return SessionContentResponse.empty();
   }
 

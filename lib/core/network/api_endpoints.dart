@@ -19,4 +19,6 @@ class ApiEndpoints {
   static const programListNew = "prgm/list";
   static const programOverview = "prgm/ovw";
   static const fetchProgram = "prgm/{productId}/trial";
+
+  static const sessionComplete="prgm/mark-completed";
 }

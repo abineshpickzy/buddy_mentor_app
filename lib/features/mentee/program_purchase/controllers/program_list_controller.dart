@@ -1,3 +1,4 @@
+import 'package:buddymentor/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/program_list_model.dart';
@@ -14,28 +15,24 @@ final programListServiceProvider = Provider<ProgramListService>((ref) {
 
 // Programs AsyncNotifier with controlled retry
 class ProgramsNotifier extends AsyncNotifier<List<Program>> {
-  bool _hasAttempted = false;
+
   
-  @override
-  Future<List<Program>> build() async {
-    if (_hasAttempted && state.hasError) {
-      // Don't retry automatically if we already failed
-      throw state.error!;
-    }
-    
-    _hasAttempted = true;
-    final service = ref.read(programListServiceProvider);
-    return service.getPrograms();
+@override
+Future<List<Program>> build() async {
+  final auth = ref.watch(authControllerProvider);
+
+  if (!auth.isAuthenticated || auth.user == null) {
+    return [];
   }
 
-  Future<void> refresh() async {
-    _hasAttempted = false; // Reset attempt flag for manual refresh
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final service = ref.read(programListServiceProvider);
-      return service.getPrograms();
-    });
-  }
+  final service = ref.read(programListServiceProvider);
+
+  return service.getPrograms();
+}
+
+Future<void> refresh() async {
+  ref.invalidateSelf();
+}
 }
 
 // Program Stats AsyncNotifier with controlled retry

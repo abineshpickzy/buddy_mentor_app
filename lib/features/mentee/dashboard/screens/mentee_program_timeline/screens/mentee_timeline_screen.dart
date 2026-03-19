@@ -2,6 +2,7 @@ import 'package:buddymentor/core/constants/app_colors.dart';
 import 'package:buddymentor/features/mentee/dashboard/widgets/profile_sidebar.dart';
 import 'package:buddymentor/features/mentee/program_purchase/controllers/program_overview_controller.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/models/timeline_model.dart';
+import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/widgets/timeline_empty_state.dart';
 import 'package:buddymentor/shared/widgets/icons/sidebar_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,10 +40,14 @@ class MenteeTimelineScreen extends ConsumerWidget {
               child: programOverviewAsync.when(
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildFallbackTimeline(context),
+                error: (error, stack) => TimelineEmptyState.error(
+                  onRetry: () => ref.invalidate(programOverviewProvider),
+                ),
                 data: (programOverview) {
                   if (programOverview == null) {
-                    return _buildFallbackTimeline(context);
+                    return TimelineEmptyState.noProgram(
+                      onRetry: () => context.go('/programs'),
+                    );
                   }
                   return _buildProgramTimeline(context, programOverview);
                 },
@@ -257,17 +262,6 @@ class MenteeTimelineScreen extends ConsumerWidget {
 
   // ── Fallback timeline ──────────────────────────────────────
 
-  Widget _buildFallbackTimeline(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final isLast = index == items.length - 1;
-        return _buildTimelineRow(context, item, isLast);
-      },
-    );
-  }
 
   // ── Shared row builder ─────────────────────────────────────
 

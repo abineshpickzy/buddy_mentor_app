@@ -1,3 +1,5 @@
+
+import 'package:buddymentor/features/mentee/program_purchase/controllers/program_selection_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,7 +53,15 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         );
         
         // Fetch program data and navigate to dashboard
-        await ref.read(programOverviewProvider.notifier).fetchProgram(widget.programId,widget.productType);
+           ref
+                                .read(selectedProgramProvider.notifier)
+                                .selectProgram(
+                                  programId: widget.programId,
+                                  productId: widget.productId,
+                                  productType: widget.productType,
+                                  isFreeTrial: false
+                                );
+
         if (mounted) {
           context.go('/menteedashboard');
         }
