@@ -9,7 +9,6 @@ import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/scr
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_profile/screens/mentee_profile_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_timeline_screen.dart';
 import 'package:buddymentor/features/mentee/dashboard/screens/mentee_program_timeline/screens/mentee_trial_timelinescreen.dart';
-import 'package:buddymentor/features/mentee/program/chapter_sessions/screens/chapter_session_screen.dart';
 import 'package:buddymentor/features/mentee/program_purchase/screens/programs_list.dart';
 import 'package:buddymentor/features/mentor/dashboard/views/mentor_dashboard_screen.dart';
 import 'package:buddymentor/features/industry/dashboard/views/industry_dashboard_screen.dart';

@@ -62,6 +62,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         final newSession = sessions[_controller.tabController.index];
         _controller.switchToSession(newSession);
       }
+      // Force rebuild to refresh bottom bar with new session status
       setState(() {});
     }
   }
@@ -69,6 +70,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
   void _onTabTap(int index) {
     final selectedSession = _controller.chapterSessions[index];
     _controller.switchToSession(selectedSession);
+    // Force rebuild to refresh bottom bar with new session status
     setState(() {});
   }
 
@@ -98,6 +100,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       final nextSession = freshSessions[nextIndex];
       _controller.switchToSession(nextSession);
       _controller.tabController.animateTo(nextIndex);
+      // Force rebuild to refresh bottom bar
       setState(() {});
     }
   }
@@ -108,10 +111,7 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
       backgroundColor: AppColors.white,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      bottomNavigationBar: MarkCompleteButton(
-        onMarkComplete: () => _controller.markSessionComplete(ref),
-        onSuccess: _onMarkCompleteSuccess,
-      ),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -253,7 +253,6 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
         _buildDescription(),
         if (showEngagementUI) ...[
           const SizedBox(height: 24),
-          // ← Clean single line, all logic lives in its own file
           MenteeEngagementSection(
             sessionId: _controller.currentSessionId,
           ),
@@ -294,25 +293,24 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
 
   Widget _buildDescription() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        border : Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(8),
-      ),  
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Text(
+          Text(
             'Description',
             textAlign: TextAlign.justify,
             style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                  letterSpacing: 0.1,
-              
-                ),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+              letterSpacing: 0.1,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -349,6 +347,39 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
     );
   }
 
+  /// Build bottom bar with mark complete button
+  /// Uses Consumer to watch programOverviewProvider for status changes
+  Widget _buildBottomBar() {
+    return Consumer(
+      builder: (context, ref, child) {
+        // Watch the program overview to get latest session statuses
+        final programOverviewAsync = ref.watch(programOverviewProvider);
+
+        return programOverviewAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (err, _) => const SizedBox.shrink(),
+          data: (programOverview) {
+            if (programOverview == null) return const SizedBox.shrink();
+
+            // Get the CURRENT session from the latest program overview data
+            // This ensures we have the most up-to-date status
+            final currentSession = _getCurrentSessionFromOverview(programOverview);
+            
+            // Check if session status is 2 (completed)
+            // If currentSession is null, treat as not completed
+            final isSessionComplete = currentSession?.status == 2 ?? false;
+
+            return MarkCompleteButton(
+              isSessionComplete: isSessionComplete,
+              onMarkComplete: () => _controller.markSessionComplete(ref),
+              onSuccess: _onMarkCompleteSuccess,
+            );
+          },
+        );
+      },
+    );
+  }
+
   List<dynamic> _getChapterSessions(programOverview) {
     for (final module in programOverview.hierarchy.modules) {
       for (final chapter in module.chapters) {
@@ -360,8 +391,19 @@ class _SessionContentPageState extends ConsumerState<SessionContentPage>
     return [];
   }
 
+  /// Get current session from the static controller list
   Session? _getCurrentSession() {
     return _controller.chapterSessions
+        .cast<Session>()
+        .where((session) => session.id == _controller.currentSessionId)
+        .firstOrNull;
+  }
+
+  /// Get current session from the latest program overview data
+  /// This is used in the bottom bar to get the LATEST status
+  Session? _getCurrentSessionFromOverview(programOverview) {
+    final sessions = _getChapterSessions(programOverview);
+    return sessions
         .cast<Session>()
         .where((session) => session.id == _controller.currentSessionId)
         .firstOrNull;

@@ -36,11 +36,31 @@ class MenteeHomeScreen extends ConsumerWidget {
             if (programOverview == null) return const _EmptyState();
 
             final moduleList = programOverview.hierarchy.modules;
-            final totalWeeks = moduleList.length;
-            final completedWeeks =
+            final totalModules = moduleList.length;
+            
+            // Calculate progress: count only completed modules (status == 2)
+            final completedModules =
                 moduleList.where((m) => m.status == 2).length;
             final progress =
-                totalWeeks > 0 ? completedWeeks / totalWeeks : 0.0;
+                totalModules > 0 ? completedModules / totalModules : 0.0;
+
+            // Find the first module that is not completed
+            // This will be the "current" or "next" week to resume/start
+            int nextModuleIndex = 0;
+            for (int i = 0; i < moduleList.length; i++) {
+              if (moduleList[i].status != 2) {
+                nextModuleIndex = i;
+                break;
+              }
+              // If all modules are completed, nextModuleIndex stays at the last module
+              if (i == moduleList.length - 1) {
+                nextModuleIndex = i;
+              }
+            }
+
+            final nextModule = moduleList[nextModuleIndex];
+            final nextWeekNumber = nextModule.orderNo;
+            final isFirstWeek = completedModules == 0;
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -106,8 +126,8 @@ class MenteeHomeScreen extends ConsumerWidget {
                       children: [
                         _ProgressCircle(
                           progress: progress,
-                          completedWeeks: completedWeeks,
-                          totalWeeks: totalWeeks,
+                          completedModules: completedModules,
+                          totalModules: totalModules,
                         ),
                         const SizedBox(height: 20),
 
@@ -118,9 +138,9 @@ class MenteeHomeScreen extends ConsumerWidget {
                             icon: const Icon(Icons.play_arrow,
                                 color: Colors.white, size: 18),
                             label: Text(
-                              completedWeeks == 0
+                              isFirstWeek
                                   ? 'Start Week 1'
-                                  : 'Resume Week ${completedWeeks + 1}',
+                                  : 'Resume Week $nextWeekNumber',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -160,6 +180,8 @@ class MenteeHomeScreen extends ConsumerWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       final module = moduleList[index];
+                      
+                      // Determine status based on module properties
                       final status = module.isLocked
                           ? 'locked'
                           : (module.status == 2
@@ -244,18 +266,18 @@ class _HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _ProgressCircle extends StatelessWidget {
   final double progress;
-  final int completedWeeks;
-  final int totalWeeks;
+  final int completedModules;
+  final int totalModules;
 
   const _ProgressCircle({
     required this.progress,
-    required this.completedWeeks,
-    required this.totalWeeks,
+    required this.completedModules,
+    required this.totalModules,
   });
 
   @override
   Widget build(BuildContext context) {
-    final shown = completedWeeks.clamp(0, totalWeeks);
+    final shown = completedModules.clamp(0, totalModules);
     const double size = 120;
 
     return SizedBox(
@@ -288,7 +310,7 @@ class _ProgressCircle extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               Text(
-                'of $totalWeeks weeks',
+                'of $totalModules weeks',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey.shade500,

@@ -7,7 +7,7 @@ class SessionAsset {
   final String type; // "video", "docx", "image", "pdf", etc.
   final int reviewStatus;
   final String? cloudflareUid; // only for videos
-  final int status;
+ 
   final bool isDownloadable;
 
   const SessionAsset({
@@ -17,7 +17,7 @@ class SessionAsset {
     required this.type,
     required this.reviewStatus,
     this.cloudflareUid,
-    required this.status,
+ 
     required this.isDownloadable,
   });
 
@@ -29,7 +29,7 @@ class SessionAsset {
       type: json['type'] as String,
       reviewStatus: json['review_status'] as int,
       cloudflareUid: json['cloudflare_uid'] as String?,
-      status: json['status'] as int,
+     
       isDownloadable: json['is_downloadable'] as bool? ?? false,
     );
   }
